@@ -131,6 +131,10 @@ export interface TableState<TItem> extends Pick<UseTableOptions<TItem>, 'items' 
    * Table columns
    */
   columns: ColumnDefinition<TItem>[];
+
+  columnSizing: TableColumnSizingState;
+
+  tableRef: React.RefObject<HTMLDivElement>;
 }
 
 export interface UseTableSortOptions {
@@ -174,3 +178,20 @@ export interface UseTableOptions<TItem> {
 }
 
 export type TableStatePlugin = <TItem>(tableState: TableState<TItem>) => TableState<TItem>;
+
+export interface ColumnWidthState {
+  columnId: ColumnId;
+  width: number;
+  minWidth: number;
+  maxWidth: number;
+  idealWidth: number;
+  padding: number;
+}
+
+export interface TableColumnSizingState {
+  getOnMouseDown: (columnId: ColumnId) => (e: React.MouseEvent<HTMLElement>) => void;
+  getColumnWidth: (columnId: ColumnId) => number;
+  getTotalWidth: () => number;
+  setColumnWidth: (columnId: ColumnId, newSize: number) => void;
+  getColumnWidths: () => ColumnWidthState[];
+}

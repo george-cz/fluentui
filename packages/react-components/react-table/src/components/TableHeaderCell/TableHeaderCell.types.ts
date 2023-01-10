@@ -11,6 +11,8 @@ export type TableHeaderCellSlots = {
    * Button handles correct narration and interactions for sorting;
    */
   button: NonNullable<Slot<ARIAButtonSlotProps>>;
+
+  resizeHandle: Slot<'div'>;
 };
 
 /**

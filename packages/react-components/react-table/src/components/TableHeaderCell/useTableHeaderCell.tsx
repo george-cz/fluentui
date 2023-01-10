@@ -11,6 +11,8 @@ const sortIcons = {
   descending: <ArrowDownRegular fontSize={12} />,
 };
 
+const TableHeaderResizeHandle = () => <span>|</span>;
+
 /**
  * Create the state required to render TableHeaderCell.
  *
@@ -24,7 +26,7 @@ export const useTableHeaderCell_unstable = (
   props: TableHeaderCellProps,
   ref: React.Ref<HTMLElement>,
 ): TableHeaderCellState => {
-  const { noNativeElements, sortable } = useTableContext();
+  const { noNativeElements, sortable, columnWidths } = useTableContext();
 
   const rootComponent = props.as ?? noNativeElements ? 'div' : 'th';
   return {
@@ -32,6 +34,7 @@ export const useTableHeaderCell_unstable = (
       root: rootComponent,
       button: 'button',
       sortIcon: 'span',
+      resizeHandle: TableHeaderResizeHandle,
     },
     root: getNativeElementProps(rootComponent, {
       ref: useMergedRefs(ref, useFocusWithin()),
@@ -39,6 +42,7 @@ export const useTableHeaderCell_unstable = (
       'aria-sort': sortable ? props.sortDirection ?? 'none' : undefined,
       ...props,
     }),
+    resizeHandle: {},
     sortIcon: resolveShorthand(props.sortIcon, {
       required: !!props.sortDirection,
       defaultProps: { children: props.sortDirection ? sortIcons[props.sortDirection] : undefined },
