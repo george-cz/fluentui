@@ -3,12 +3,14 @@ import { tokens } from '@fluentui/react-theme';
 import type { SlotClassNames } from '@fluentui/react-utilities';
 import { createCustomFocusIndicatorStyle } from '@fluentui/react-tabster';
 import type { TableHeaderCellSlots, TableHeaderCellState } from './TableHeaderCell.types';
+import { useTableContext } from '../../contexts/tableContext';
 
 export const tableHeaderCellClassName = 'fui-TableHeaderCell';
 export const tableHeaderCellClassNames: SlotClassNames<TableHeaderCellSlots> = {
   root: 'fui-TableHeaderCell',
   button: 'fui-TableHeaderCell__button',
   sortIcon: 'fui-TableHeaderCell__sortIcon',
+  resizeHandle: 'fui-TableHeaderCell__resizeHandle',
 };
 
 const useTableLayoutStyles = makeStyles({
@@ -64,6 +66,7 @@ const useStyles = makeStyles({
     WebkitAppearance: 'button',
     textAlign: 'unset',
   },
+
   button: {
     position: 'relative',
     width: '100%',
@@ -76,6 +79,7 @@ const useStyles = makeStyles({
     ...shorthands.flex(1, 1, '0px'),
     outlineStyle: 'none',
   },
+
   sortable: {
     cursor: 'pointer',
   },

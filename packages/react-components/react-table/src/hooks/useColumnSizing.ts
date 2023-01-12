@@ -48,6 +48,7 @@ function useColumnSizingState<TItem>(tableState: TableState<TItem>): TableState<
       getTotalWidth: () => manager.totalWidth,
       setColumnWidth: (columnId: ColumnId, newSize: number) => manager.setColumnWidth(columnId, newSize),
       getColumnWidths: () => manager.columns,
+      getColumnProps: (columnId: ColumnId) => manager.getColumnProps(columnId),
     },
   };
 }

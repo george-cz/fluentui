@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ColumnId, ColumnWidthState } from './types';
+import { ColumnId, ColumnWidthProps, ColumnWidthState } from './types';
 
 const DEFAULT_WIDTH = 150;
 const DEFAULT_MAX_WIDTH = 300;
@@ -73,7 +73,8 @@ export class ColumnResize {
 
   public getOnMouseDown(columnId: ColumnId) {
     return (mouseDownEvent: React.MouseEvent<HTMLElement>) => {
-      if (mouseDownEvent.target !== mouseDownEvent.currentTarget) {
+      // ignore other buttons than primary mouse button
+      if (mouseDownEvent.target !== mouseDownEvent.currentTarget || mouseDownEvent.button !== 0) {
         return;
       }
 
@@ -126,6 +127,15 @@ export class ColumnResize {
 
     this._updateTableStyles();
     this.onColumnWidthsUpdate();
+  }
+
+  public getColumnProps(columnId: ColumnId): ColumnWidthProps {
+    return {
+      columnId,
+      style: {
+        width: this.getColumnWidth(columnId),
+      },
+    };
   }
 
   private _getColumn(columnId: ColumnId) {

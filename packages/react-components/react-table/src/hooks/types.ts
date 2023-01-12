@@ -188,10 +188,16 @@ export interface ColumnWidthState {
   padding: number;
 }
 
+export interface ColumnWidthProps {
+  style: React.CSSProperties;
+  columnId: ColumnId;
+}
+
 export interface TableColumnSizingState {
   getOnMouseDown: (columnId: ColumnId) => (e: React.MouseEvent<HTMLElement>) => void;
   getColumnWidth: (columnId: ColumnId) => number;
   getTotalWidth: () => number;
   setColumnWidth: (columnId: ColumnId, newSize: number) => void;
   getColumnWidths: () => ColumnWidthState[];
+  getColumnProps: (columnId: ColumnId) => ColumnWidthProps;
 }

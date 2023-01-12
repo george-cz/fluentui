@@ -49,12 +49,19 @@ const columns: ColumnDefinition<Item>[] = [
 
 const items: Item[] = new Array(10).fill(0).map((_, i) => ({ first: i, second: i, third: i, fourth: i }));
 
+const CustomHandle: React.FC<{ onMouseDown: React.MouseEventHandler }> = ({ onMouseDown }) => {
+  return (
+    <div
+      onMouseDown={onMouseDown}
+      style={{ position: 'absolute', right: 0, top: 0, bottom: 0, display: 'flex', alignItems: 'center' }}
+    >
+      🦑
+    </div>
+  );
+};
+
 export const ResizableUncontrolled = () => {
-  const {
-    getRows,
-    columnSizing: { getColumnWidth, setColumnWidth, getOnMouseDown },
-    tableRef,
-  } = useTableFeatures(
+  const { getRows, columnSizing, tableRef } = useTableFeatures(
     {
       columns,
       items,
@@ -62,33 +69,21 @@ export const ResizableUncontrolled = () => {
     [useColumnSizing()],
   );
 
-  const getColumnStyle = (columnId: ColumnId) => ({
-    // minWidth: getColumnWidth(columnId),
-    // maxWidth: getColumnWidth(columnId),
-    width: getColumnWidth(columnId),
-  });
-
   return (
     <>
-      <Table ref={tableRef}>
+      <Table ref={tableRef} columnSizingState={columnSizing}>
         <TableHeader>
           <TableRow>
-            <TableHeaderCell style={getColumnStyle('first')}>
-              First
-              <Resizer onMouseDown={getOnMouseDown('first')} />
+            <TableHeaderCell
+              {...columnSizing.getColumnProps('first')}
+              resizeHandle={<CustomHandle onMouseDown={columnSizing.getOnMouseDown('first')} />}
+            >
+              Octopus' column
             </TableHeaderCell>
-            <TableHeaderCell style={getColumnStyle('second')} onMouseDown={getOnMouseDown('second')}>
-              Second
-              <Resizer onMouseDown={getOnMouseDown('second')} />
-            </TableHeaderCell>
-            <TableHeaderCell style={getColumnStyle('third')} onMouseDown={getOnMouseDown('third')}>
-              Third
-              <Resizer onMouseDown={getOnMouseDown('third')} />
-            </TableHeaderCell>
-            <TableHeaderCell style={getColumnStyle('fourth')} onMouseDown={getOnMouseDown('fourth')}>
-              Fourth
-              <Resizer onMouseDown={getOnMouseDown('fourth')} />
-            </TableHeaderCell>
+
+            <TableHeaderCell {...columnSizing.getColumnProps('second')}>Second</TableHeaderCell>
+            <TableHeaderCell {...columnSizing.getColumnProps('third')}>Third</TableHeaderCell>
+            <TableHeaderCell {...columnSizing.getColumnProps('fourth')}>Fourth</TableHeaderCell>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -103,22 +98,5 @@ export const ResizableUncontrolled = () => {
         </TableBody>
       </Table>
     </>
-  );
-};
-
-const Resizer: React.FC<React.HTMLAttributes<HTMLDivElement>> = props => {
-  return (
-    <div
-      {...props}
-      style={{
-        borderRight: '2px solid red',
-        height: 44,
-        cursor: 'w-resize',
-        paddingLeft: 4,
-        paddingRight: 4,
-        position: 'absolute',
-        right: -8,
-      }}
-    />
   );
 };
