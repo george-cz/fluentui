@@ -201,3 +201,7 @@ export interface TableColumnSizingState {
   getColumnWidths: () => ColumnWidthState[];
   getColumnProps: (columnId: ColumnId) => ColumnWidthProps;
 }
+
+export interface ColumnSizingOptions {
+  onColumnOverflow?: (e: any) => void;
+}

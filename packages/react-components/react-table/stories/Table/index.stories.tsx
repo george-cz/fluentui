@@ -21,6 +21,8 @@ export { NonNativeElements } from './NonNativeElements.stories';
 export { Sort } from './Sort.stories';
 export { Resizable } from './Resizable.stories';
 export { ResizableUncontrolled } from './ResizableUncontrolled.stories';
+export { ResizableFlex } from './ResizableFlex.stories';
+export { DroppingColumns } from './DroppingColumns.stories';
 // export { SortControlled } from './SortControlled.stories';
 // export { MultipleSelect } from './MultipleSelect.stories';
 // export { SingleSelect } from './SingleSelect.stories';

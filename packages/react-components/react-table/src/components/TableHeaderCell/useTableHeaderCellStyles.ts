@@ -3,7 +3,6 @@ import { tokens } from '@fluentui/react-theme';
 import type { SlotClassNames } from '@fluentui/react-utilities';
 import { createCustomFocusIndicatorStyle } from '@fluentui/react-tabster';
 import type { TableHeaderCellSlots, TableHeaderCellState } from './TableHeaderCell.types';
-import { useTableContext } from '../../contexts/tableContext';
 
 export const tableHeaderCellClassName = 'fui-TableHeaderCell';
 export const tableHeaderCellClassNames: SlotClassNames<TableHeaderCellSlots> = {

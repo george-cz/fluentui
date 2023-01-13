@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { ColumnId, ColumnWidthProps, ColumnWidthState } from './types';
+import { ColumnId, ColumnSizingOptions, ColumnWidthProps, ColumnWidthState } from './types';
 
 const DEFAULT_WIDTH = 150;
-const DEFAULT_MAX_WIDTH = 300;
+const DEFAULT_MAX_WIDTH = 999999;
 const DEFAULT_MIN_WIDTH = DEFAULT_WIDTH;
 
 export interface ColumnWidthOptions
@@ -17,8 +17,9 @@ export class ColumnResize {
   private tableElement: HTMLElement | null = null;
   private resizing: boolean = false;
   private resizeObserver: ResizeObserver;
+  private options?: ColumnSizingOptions;
 
-  constructor(columns: ColumnWidthOptions[], onColumnWidthsUpdate: () => void) {
+  constructor(columns: ColumnWidthOptions[], onColumnWidthsUpdate: () => void, options: ColumnSizingOptions) {
     this.columns = columns.map(column => {
       const {
         columnId,
@@ -40,6 +41,7 @@ export class ColumnResize {
     this.onColumnWidthsUpdate = onColumnWidthsUpdate;
     this.container = document.body;
     this.resizeObserver = new ResizeObserver(this._handleResize);
+    this.options = options;
   }
 
   public init(table: HTMLElement) {
@@ -60,11 +62,33 @@ export class ColumnResize {
 
   public setColumnWidth(columnId: ColumnId, newWidth: number) {
     const state = this._getColumn(columnId);
+    const availableWidth = this.container.getBoundingClientRect().width;
+
     if (newWidth >= state.minWidth && newWidth <= state.maxWidth) {
       const dx = state.width - newWidth;
-      state.width = newWidth;
 
-      this.columns[this.columns.length - 1].width += dx;
+      state.width = newWidth;
+      let totalWidth = this.totalWidth;
+
+      if (totalWidth <= availableWidth) {
+        this.columns[this.columns.length - 1].width += dx;
+      }
+
+      // Total resulting width is bigger than available width
+      let i = this.columns.length - 1;
+      while (i >= 0 && totalWidth > availableWidth) {
+        const column = this.columns[i];
+        if (column.width > column.minWidth) {
+          const diffAvailableWidth = totalWidth - availableWidth;
+          const adjust = Math.min(column.width - column.minWidth, diffAvailableWidth);
+          column.width -= adjust;
+          totalWidth -= adjust;
+        } else {
+          // notify user so that they can hide the rightmost column
+          this.options?.onColumnOverflow?.('dfa');
+        }
+        i--;
+      }
     }
 
     this._updateTableStyles();
@@ -130,11 +154,18 @@ export class ColumnResize {
   }
 
   public getColumnProps(columnId: ColumnId): ColumnWidthProps {
+    const width = this.getColumnWidth(columnId);
+    const style = {
+      // native styles
+      width,
+
+      // non-native element styles (flex layout)
+      minWidth: width,
+      maxWidth: width,
+    };
     return {
       columnId,
-      style: {
-        width: this.getColumnWidth(columnId),
-      },
+      style,
     };
   }
 
