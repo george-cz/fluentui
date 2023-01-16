@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ColumnResize, ColumnWidthOptions } from './ColumnResize';
-import { ColumnId, ColumnSizingOptions, TableColumnSizingState, TableState } from './types';
+import { ColumnId, TableColumnSizingOptions, TableColumnSizingState, TableState } from './types';
 
 // why are there 2 layout components for cells ? -> try to consolidate to one
 // column collapse priority -> verify DetailsList
@@ -17,13 +17,16 @@ export const defaultColumnSizingState: TableColumnSizingState = {
   getColumnProps: () => ({ style: {}, columnId: '' }),
 };
 
-export function useColumnSizing<TItem>(options: ColumnSizingOptions = {}) {
+export function useColumnSizing<TItem>(options: TableColumnSizingOptions = {}) {
   // False positive, these plugin hooks are intended to be run on every render
   // eslint-disable-next-line react-hooks/rules-of-hooks
   return (tableState: TableState<TItem>) => useColumnSizingState(tableState, options);
 }
 
-function useColumnSizingState<TItem>(tableState: TableState<TItem>, options: ColumnSizingOptions): TableState<TItem> {
+function useColumnSizingState<TItem>(
+  tableState: TableState<TItem>,
+  options: TableColumnSizingOptions,
+): TableState<TItem> {
   const { columns, tableRef } = tableState;
 
   const forceUpdate = React.useReducer(() => ({}), {})[1];
@@ -41,6 +44,14 @@ function useColumnSizingState<TItem>(tableState: TableState<TItem>, options: Col
       manager.init(tableRef.current);
     }
   }, [manager, tableRef]);
+
+  React.useEffect(() => {
+    manager.updateColumns(columns.map(({ columnId }) => ({ columnId })));
+  }, [columns, manager]);
+
+  React.useEffect(() => {
+    manager.updateOptions(options);
+  }, [manager, options]);
 
   return {
     ...tableState,

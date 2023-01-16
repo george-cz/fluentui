@@ -202,6 +202,7 @@ export interface TableColumnSizingState {
   getColumnProps: (columnId: ColumnId) => ColumnWidthProps;
 }
 
-export interface ColumnSizingOptions {
-  onColumnOverflow?: (e: any) => void;
+export interface TableColumnSizingOptions {
+  onColumnOverflow?: (columnId: ColumnId) => void;
+  onColSpaceAvailable?: (availableSpace: number) => void;
 }

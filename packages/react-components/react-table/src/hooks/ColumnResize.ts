@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ColumnId, ColumnSizingOptions, ColumnWidthProps, ColumnWidthState } from './types';
+import { ColumnId, TableColumnSizingOptions, ColumnWidthProps, ColumnWidthState } from './types';
 
 const DEFAULT_WIDTH = 150;
 const DEFAULT_MAX_WIDTH = 999999;
@@ -17,9 +17,9 @@ export class ColumnResize {
   private tableElement: HTMLElement | null = null;
   private resizing: boolean = false;
   private resizeObserver: ResizeObserver;
-  private options?: ColumnSizingOptions;
+  private options?: TableColumnSizingOptions;
 
-  constructor(columns: ColumnWidthOptions[], onColumnWidthsUpdate: () => void, options: ColumnSizingOptions) {
+  constructor(columns: ColumnWidthOptions[], onColumnWidthsUpdate: () => void, options: TableColumnSizingOptions) {
     this.columns = columns.map(column => {
       const {
         columnId,
@@ -44,6 +44,56 @@ export class ColumnResize {
     this.options = options;
   }
 
+  // this needs to be refactored
+  public updateColumns(columns: ColumnWidthOptions[]) {
+    // new definition
+    const cols = columns.map(column => {
+      const {
+        columnId,
+        width = DEFAULT_WIDTH,
+        maxWidth = DEFAULT_MAX_WIDTH,
+        minWidth = DEFAULT_MIN_WIDTH,
+        padding = 16,
+      } = column;
+      return {
+        columnId,
+        width: DEFAULT_WIDTH,
+        maxWidth,
+        minWidth,
+        idealWidth: width,
+        padding,
+      };
+    });
+
+    // update for existing columns
+    this.columns = cols.map(column => {
+      const existingColumn = this.columns.find(col => col.columnId === column.columnId);
+      if (existingColumn) {
+        return { ...existingColumn, ...column, width: existingColumn.width };
+      } else {
+        return column;
+      }
+    });
+
+    // resize last column to fill the table
+    const { width: availableWidth } = this.container.getBoundingClientRect();
+    const lastColumn = this.columns[this.columns.length - 1];
+    const totalWidth = this.totalWidth;
+
+    if (totalWidth < availableWidth) {
+      this.setColumnWidth(lastColumn.columnId, (lastColumn.width += availableWidth - totalWidth));
+    } else {
+      this.setColumnWidth(lastColumn.columnId, lastColumn.minWidth);
+    }
+
+    this._updateTableStyles();
+    this.onColumnWidthsUpdate();
+  }
+
+  public updateOptions(options: TableColumnSizingOptions) {
+    this.options = options;
+  }
+
   public init(table: HTMLElement) {
     this.container = document.createElement('div');
     this.tableElement = table;
@@ -64,14 +114,20 @@ export class ColumnResize {
     const state = this._getColumn(columnId);
     const availableWidth = this.container.getBoundingClientRect().width;
 
-    if (newWidth >= state.minWidth && newWidth <= state.maxWidth) {
+    if (newWidth >= state.minWidth) {
       const dx = state.width - newWidth;
 
       state.width = newWidth;
+      state.idealWidth = newWidth;
+
       let totalWidth = this.totalWidth;
 
       if (totalWidth <= availableWidth) {
         this.columns[this.columns.length - 1].width += dx;
+
+        const potentialSpace =
+          this.columns[this.columns.length - 1].width - this.columns[this.columns.length - 1].minWidth;
+        this.options?.onColSpaceAvailable?.(potentialSpace);
       }
 
       // Total resulting width is bigger than available width
@@ -85,7 +141,10 @@ export class ColumnResize {
           totalWidth -= adjust;
         } else {
           // notify user so that they can hide the rightmost column
-          this.options?.onColumnOverflow?.('dfa');
+          // only if we are not moving the right most column
+          if (column.columnId !== this.columns[this.columns.length - 1].columnId) {
+            this.options?.onColumnOverflow?.(column.columnId);
+          }
         }
         i--;
       }
@@ -154,19 +213,23 @@ export class ColumnResize {
   }
 
   public getColumnProps(columnId: ColumnId): ColumnWidthProps {
-    const width = this.getColumnWidth(columnId);
-    const style = {
-      // native styles
-      width,
+    try {
+      const width = this.getColumnWidth(columnId);
+      const style = {
+        // native styles
+        width,
 
-      // non-native element styles (flex layout)
-      minWidth: width,
-      maxWidth: width,
-    };
-    return {
-      columnId,
-      style,
-    };
+        // non-native element styles (flex layout)
+        minWidth: width,
+        maxWidth: width,
+      };
+      return {
+        columnId,
+        style,
+      };
+    } catch {
+      return { style: {}, columnId: '' };
+    }
   }
 
   private _getColumn(columnId: ColumnId) {
