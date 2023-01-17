@@ -59,7 +59,7 @@ export const DroppingColumns = () => {
   };
 
   const onColSpaceAvailable = (availableSpace: number) => {
-    if (availableSpace > 167 && columns.length !== columnsDef.length) {
+    if (availableSpace > 170 && columns.length !== columnsDef.length) {
       const toAdd = columnsDef[columns.length];
       setColumns([...columns, toAdd]);
     }

@@ -12,6 +12,7 @@ export interface ColumnWidthOptions
 export class ColumnResize {
   public columns: ColumnWidthState[];
   private mouseX: number = 0;
+  private totalDistanceTraveled: number = 0;
   private onColumnWidthsUpdate: () => void;
   private container: HTMLElement;
   private tableElement: HTMLElement | null = null;
@@ -69,7 +70,7 @@ export class ColumnResize {
     this.columns = cols.map(column => {
       const existingColumn = this.columns.find(col => col.columnId === column.columnId);
       if (existingColumn) {
-        return { ...existingColumn, ...column, width: existingColumn.width };
+        return { ...existingColumn, ...column, width: existingColumn.width, idealWidth: existingColumn.idealWidth };
       } else {
         return column;
       }
@@ -81,9 +82,9 @@ export class ColumnResize {
     const totalWidth = this.totalWidth;
 
     if (totalWidth < availableWidth) {
-      this.setColumnWidth(lastColumn.columnId, (lastColumn.width += availableWidth - totalWidth));
+      this.setColumnWidth(lastColumn.columnId, (lastColumn.width += availableWidth - totalWidth), false);
     } else {
-      this.setColumnWidth(lastColumn.columnId, lastColumn.minWidth);
+      this.setColumnWidth(lastColumn.columnId, lastColumn.minWidth, false);
     }
 
     this._updateTableStyles();
@@ -110,7 +111,21 @@ export class ColumnResize {
     return this.columns.reduce((sum, column) => sum + column.width + column.padding, 0);
   }
 
-  public setColumnWidth(columnId: ColumnId, newWidth: number) {
+  public handleLastColumnResize(columnId: ColumnId) {
+    if (columnId !== this.columns[this.columns.length - 1].columnId) {
+      return;
+    }
+    if (this.totalDistanceTraveled < 0) {
+      const mouseDistance = Math.abs(this.totalDistanceTraveled);
+      const availableSpace =
+        this.columns[this.columns.length - 1].width - this.columns[this.columns.length - 1].minWidth;
+      if (availableSpace > mouseDistance) {
+        this.options?.onColSpaceAvailable?.(mouseDistance);
+      }
+    }
+  }
+
+  public setColumnWidth(columnId: ColumnId, newWidth: number, isSettingDirectly = true) {
     const state = this._getColumn(columnId);
     const availableWidth = this.container.getBoundingClientRect().width;
 
@@ -118,22 +133,26 @@ export class ColumnResize {
       const dx = state.width - newWidth;
 
       state.width = newWidth;
-      state.idealWidth = newWidth;
+      if (isSettingDirectly) {
+        state.idealWidth = newWidth;
+      }
 
       let totalWidth = this.totalWidth;
 
       if (totalWidth <= availableWidth) {
         this.columns[this.columns.length - 1].width += dx;
-
-        const potentialSpace =
-          this.columns[this.columns.length - 1].width - this.columns[this.columns.length - 1].minWidth;
-        this.options?.onColSpaceAvailable?.(potentialSpace);
+        if (dx > 0) {
+          const potentialSpace =
+            this.columns[this.columns.length - 1].width - this.columns[this.columns.length - 1].idealWidth;
+          this.options?.onColSpaceAvailable?.(potentialSpace);
+        }
       }
 
       // Total resulting width is bigger than available width
       let i = this.columns.length - 1;
       while (i >= 0 && totalWidth > availableWidth) {
         const column = this.columns[i];
+
         if (column.width > column.minWidth) {
           const diffAvailableWidth = totalWidth - availableWidth;
           const adjust = Math.min(column.width - column.minWidth, diffAvailableWidth);
@@ -142,8 +161,9 @@ export class ColumnResize {
         } else {
           // notify user so that they can hide the rightmost column
           // only if we are not moving the right most column
-          if (column.columnId !== this.columns[this.columns.length - 1].columnId) {
+          if (columnId !== this.columns[this.columns.length - 1].columnId) {
             this.options?.onColumnOverflow?.(column.columnId);
+            // this.totalDistanceTraveled = -column.minWidth;
           }
         }
         i--;
@@ -164,17 +184,21 @@ export class ColumnResize {
       this.resizing = true;
 
       this.mouseX = mouseDownEvent.clientX;
+
       const onMouseUp = (e: MouseEvent) => {
         document.removeEventListener('mouseup', onMouseUp);
         document.removeEventListener('mousemove', onMouseMove);
+        this.totalDistanceTraveled = 0;
         this.resizing = false;
       };
 
       const onMouseMove = (e: MouseEvent) => {
         const dx = e.clientX - this.mouseX;
+        this.totalDistanceTraveled = this.totalDistanceTraveled + dx;
         this.mouseX = e.clientX;
         const currentWidth = this.getColumnWidth(columnId);
-        this.setColumnWidth(columnId, currentWidth + dx);
+        this.handleLastColumnResize(columnId);
+        this.setColumnWidth(columnId, currentWidth + dx, true);
       };
 
       document.addEventListener('mouseup', onMouseUp);
