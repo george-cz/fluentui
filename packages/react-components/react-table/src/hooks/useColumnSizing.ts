@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { ColumnResize, ColumnWidthOptions } from './ColumnResize';
 import { ColumnId, TableColumnSizingOptions, TableColumnSizingState, TableState } from './types';
+import { useColumnResizeState } from './useColumnResizeState';
 
 // why are there 2 layout components for cells ? -> try to consolidate to one
 // column collapse priority -> verify DetailsList
@@ -29,15 +30,11 @@ function useColumnSizingState<TItem>(
 ): TableState<TItem> {
   const { columns, tableRef } = tableState;
 
+  const columnResizeState = useColumnResizeState<TItem>(columns);
+  const colStatus = columnResizeState.getColumns();
+
   const forceUpdate = React.useReducer(() => ({}), {})[1];
-  const manager = React.useState(
-    () =>
-      new ColumnResize(
-        columns.map(({ columnId }) => ({ columnId })),
-        forceUpdate,
-        options,
-      ),
-  )[0];
+  const manager = React.useState(() => new ColumnResize(columnResizeState, forceUpdate, options))[0];
 
   React.useEffect(() => {
     if (tableRef.current) {
@@ -48,6 +45,11 @@ function useColumnSizingState<TItem>(
   React.useEffect(() => {
     manager.updateColumns(columns.map(({ columnId }) => ({ columnId })));
   }, [columns, manager]);
+
+  React.useEffect(() => {
+    console.log(columnResizeState.getColumns().map(c => c.width));
+    manager.updateState(columnResizeState);
+  }, [colStatus, manager]);
 
   React.useEffect(() => {
     manager.updateOptions(options);

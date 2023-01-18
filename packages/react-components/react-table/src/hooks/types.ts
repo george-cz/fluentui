@@ -206,3 +206,16 @@ export interface TableColumnSizingOptions {
   onColumnOverflow?: (columnId: ColumnId) => void;
   onColSpaceAvailable?: (availableSpace: number) => void;
 }
+
+export type ColumnResizeState = {
+  getColumnWidth: (columnId: ColumnId) => number;
+  getTotalWidth: () => number;
+  setColumnWidth: (columnId: ColumnId, width: number, availableWidth: number) => void;
+  setColumnIdealWidth: (columnId: ColumnId, minWidth: number) => void;
+  getLastColumn: () => ColumnWidthState;
+  getLength: () => number;
+  getColumnByIndex: (index: number) => ColumnWidthState;
+  getColumnById: (columnId: ColumnId) => ColumnWidthState;
+  getColumns: () => ColumnWidthState[];
+  resetLayout: (availableWidth: number) => void;
+};
