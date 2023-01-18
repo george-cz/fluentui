@@ -133,9 +133,6 @@ export class ColumnResize {
       const dx = state.width - newWidth;
 
       state.width = newWidth;
-      if (isSettingDirectly) {
-        state.idealWidth = newWidth;
-      }
 
       let totalWidth = this.totalWidth;
 
@@ -157,13 +154,18 @@ export class ColumnResize {
           const diffAvailableWidth = totalWidth - availableWidth;
           const adjust = Math.min(column.width - column.minWidth, diffAvailableWidth);
           column.width -= adjust;
+
+          if (isSettingDirectly && column.columnId !== columnId) {
+            state.idealWidth = newWidth;
+          }
+
           totalWidth -= adjust;
         } else {
           // notify user so that they can hide the rightmost column
           // only if we are not moving the right most column
           if (columnId !== this.columns[this.columns.length - 1].columnId) {
             this.options?.onColumnOverflow?.(column.columnId);
-            // this.totalDistanceTraveled = -column.minWidth;
+            this.totalDistanceTraveled = -column.width;
           }
         }
         i--;
@@ -195,6 +197,7 @@ export class ColumnResize {
       const onMouseMove = (e: MouseEvent) => {
         const dx = e.clientX - this.mouseX;
         this.totalDistanceTraveled = this.totalDistanceTraveled + dx;
+        console.log(this.totalDistanceTraveled);
         this.mouseX = e.clientX;
         const currentWidth = this.getColumnWidth(columnId);
         this.handleLastColumnResize(columnId);
