@@ -1,6 +1,13 @@
 import * as React from 'react';
 import { ColumnResize, ColumnWidthOptions } from './ColumnResize';
-import { ColumnId, TableColumnSizingOptions, TableColumnSizingState, TableState } from './types';
+import {
+  ColumnId,
+  ColumnWidthProps,
+  ColumnWidthState,
+  TableColumnSizingOptions,
+  TableColumnSizingState,
+  TableState,
+} from './types';
 import { useColumnResizeState } from './useColumnResizeState';
 
 // why are there 2 layout components for cells ? -> try to consolidate to one
@@ -24,6 +31,26 @@ export function useColumnSizing<TItem>(options: TableColumnSizingOptions = {}) {
   return (tableState: TableState<TItem>) => useColumnSizingState(tableState, options);
 }
 
+function getColumnProps(column: ColumnWidthState): ColumnWidthProps {
+  try {
+    const width = column.width;
+    const style = {
+      // native styles
+      width,
+
+      // non-native element styles (flex layout)
+      minWidth: width,
+      maxWidth: width,
+    };
+    return {
+      columnId: column.columnId,
+      style,
+    };
+  } catch {
+    return { style: {}, columnId: '' };
+  }
+}
+
 function useColumnSizingState<TItem>(
   tableState: TableState<TItem>,
   options: TableColumnSizingOptions,
@@ -33,8 +60,7 @@ function useColumnSizingState<TItem>(
   const columnResizeState = useColumnResizeState<TItem>(columns);
   const colStatus = columnResizeState.getColumns();
 
-  const forceUpdate = React.useReducer(() => ({}), {})[1];
-  const manager = React.useState(() => new ColumnResize(columnResizeState, forceUpdate, options))[0];
+  const manager = React.useState(() => new ColumnResize(columnResizeState, options))[0];
 
   React.useEffect(() => {
     if (tableRef.current) {
@@ -59,11 +85,11 @@ function useColumnSizingState<TItem>(
     ...tableState,
     columnSizing: {
       getOnMouseDown: (columnId: ColumnId) => manager.getOnMouseDown(columnId),
-      getColumnWidth: (columnId: ColumnId) => manager.getColumnWidth(columnId),
-      getTotalWidth: () => manager.totalWidth,
+      getColumnWidth: (columnId: ColumnId) => columnResizeState.getColumnWidth(columnId),
+      getTotalWidth: () => columnResizeState.getTotalWidth(),
       setColumnWidth: (columnId: ColumnId, newSize: number) => manager.setColumnWidth(columnId, newSize),
-      getColumnWidths: () => manager.columns,
-      getColumnProps: (columnId: ColumnId) => manager.getColumnProps(columnId),
+      getColumnWidths: () => columnResizeState.getColumns(),
+      getColumnProps: (columnId: ColumnId) => getColumnProps(columnResizeState.getColumnById(columnId)),
     },
   };
 }

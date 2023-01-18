@@ -1,17 +1,15 @@
 import { useState } from 'react';
 import { ColumnDefinition, ColumnId, ColumnResizeState, ColumnWidthState } from './types';
 
-const DEFAULT_WIDTH = 230;
-const DEFAULT_MAX_WIDTH = 999999;
-const DEFAULT_MIN_WIDTH = 50;
+const DEFAULT_WIDTH = 450;
+const DEFAULT_MIN_WIDTH = 110;
 
 function columnDefinitionsToState<T>(columns: ColumnDefinition<T>[]): ColumnWidthState[] {
   return columns.map(column => {
     const { columnId } = column;
     return {
       columnId,
-      width: DEFAULT_WIDTH,
-      maxWidth: DEFAULT_MAX_WIDTH,
+      width: DEFAULT_MIN_WIDTH,
       minWidth: DEFAULT_MIN_WIDTH,
       idealWidth: DEFAULT_WIDTH,
       padding: 16,
@@ -51,32 +49,32 @@ function getColumnWidth(state: ColumnWidthState[], columnId: ColumnId): number {
   return column.width;
 }
 
+const setColumnProperty = (
+  localState: ColumnWidthState[],
+  columnId: ColumnId,
+  property: keyof ColumnWidthState,
+  value: number,
+) => {
+  const currentColumn = getColumnById(localState, columnId);
+
+  if (currentColumn[property] === value) {
+    return localState;
+  }
+
+  const updatedColumn = { ...getColumnById(localState, columnId), [property]: value };
+
+  const newState = localState.reduce((acc, current) => {
+    if (current.columnId === updatedColumn.columnId) {
+      return [...acc, updatedColumn];
+    }
+    return [...acc, current];
+  }, [] as ColumnWidthState[]);
+
+  return newState;
+};
+
 export function useColumnResizeState<T>(columns: ColumnDefinition<T>[]): ColumnResizeState {
   const [state, setState] = useState<ColumnWidthState[]>(columnDefinitionsToState(columns));
-
-  const setColumnProperty = (
-    localState: ColumnWidthState[],
-    columnId: ColumnId,
-    property: keyof ColumnWidthState,
-    value: number,
-  ) => {
-    const currentColumn = getColumnById(localState, columnId);
-
-    if (currentColumn[property] === value) {
-      return localState;
-    }
-
-    const updatedColumn = { ...getColumnById(localState, columnId), [property]: value };
-
-    const newState = localState.reduce((acc, current) => {
-      if (current.columnId === updatedColumn.columnId) {
-        return [...acc, updatedColumn];
-      }
-      return [...acc, current];
-    }, [] as ColumnWidthState[]);
-
-    return newState;
-  };
 
   const setColumnWidth = (columnId: ColumnId, width: number, availableWidth: number) => {
     const column = getColumnById(state, columnId);

@@ -183,7 +183,6 @@ export interface ColumnWidthState {
   columnId: ColumnId;
   width: number;
   minWidth: number;
-  maxWidth: number;
   idealWidth: number;
   padding: number;
 }

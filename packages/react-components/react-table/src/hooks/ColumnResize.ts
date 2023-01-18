@@ -6,23 +6,23 @@ import { ColumnId, TableColumnSizingOptions, ColumnWidthProps, ColumnWidthState,
 // const DEFAULT_MIN_WIDTH = DEFAULT_WIDTH;
 
 export interface ColumnWidthOptions
-  extends Partial<Pick<ColumnWidthState, 'width' | 'maxWidth' | 'minWidth' | 'padding'>>,
+  extends Partial<Pick<ColumnWidthState, 'width' | 'minWidth' | 'padding'>>,
     Pick<ColumnWidthState, 'columnId'> {}
 
 export class ColumnResize {
   public state: ColumnResizeState;
   private mouseX: number = 0;
   private totalDistanceTraveled: number = 0;
-  private onColumnWidthsUpdate: () => void;
+  // private onColumnWidthsUpdate: () => void;
   private container: HTMLElement;
   private tableElement: HTMLElement | null = null;
   private resizing: boolean = false;
   private resizeObserver: ResizeObserver;
   private options?: TableColumnSizingOptions;
 
-  constructor(state: ColumnResizeState, onColumnWidthsUpdate: () => void, options: TableColumnSizingOptions) {
+  constructor(state: ColumnResizeState, options: TableColumnSizingOptions) {
     this.state = state;
-    this.onColumnWidthsUpdate = onColumnWidthsUpdate;
+    // this.onColumnWidthsUpdate = onColumnWidthsUpdate;
     this.container = document.body;
     this.resizeObserver = new ResizeObserver(this._handleResize);
     this.options = options;
@@ -80,14 +80,6 @@ export class ColumnResize {
     table.insertAdjacentElement('beforebegin', this.container);
     this.resetLayout();
     this.resizeObserver.observe(this.container);
-  }
-
-  public getColumnWidth(columnId: ColumnId) {
-    return this.state.getColumnWidth(columnId);
-  }
-
-  public get totalWidth() {
-    return this.state.getTotalWidth();
   }
 
   public handleLastColumnResize(columnId: ColumnId) {
@@ -179,7 +171,8 @@ export class ColumnResize {
         const dx = e.clientX - this.mouseX;
         this.totalDistanceTraveled = this.totalDistanceTraveled + dx;
         this.mouseX = e.clientX;
-        const currentWidth = this.getColumnWidth(columnId);
+        const currentWidth = this.state.getColumnWidth(columnId);
+        columnId;
         this.handleLastColumnResize(columnId);
         this.setColumnWidth(columnId, currentWidth + dx, true);
       };
@@ -191,37 +184,11 @@ export class ColumnResize {
 
   public updateState(state: ColumnResizeState) {
     this.state = state;
-    this.onColumnWidthsUpdate();
-    this._updateTableStyles();
   }
 
   public resetLayout() {
     const { width: containerWidth } = this.container.getBoundingClientRect();
     this.state.resetLayout(containerWidth);
-  }
-
-  public getColumnProps(columnId: ColumnId): ColumnWidthProps {
-    try {
-      const width = this.getColumnWidth(columnId);
-      const style = {
-        // native styles
-        width,
-
-        // non-native element styles (flex layout)
-        minWidth: width,
-        maxWidth: width,
-      };
-      return {
-        columnId,
-        style,
-      };
-    } catch {
-      return { style: {}, columnId: '' };
-    }
-  }
-
-  private _getColumn(columnId: ColumnId) {
-    return this.state.getColumnById(columnId);
   }
 
   private _handleResize = () => {
@@ -231,7 +198,7 @@ export class ColumnResize {
 
     const { width: availableWidth } = this.container.getBoundingClientRect();
 
-    let totalWidth = this.totalWidth;
+    let totalWidth = this.state.getTotalWidth();
     if (availableWidth > totalWidth) {
       this.columns[this.columns.length - 1].width += availableWidth - totalWidth;
     } else {
@@ -250,14 +217,14 @@ export class ColumnResize {
     }
 
     this._updateTableStyles();
-    this.onColumnWidthsUpdate();
+    // this.onColumnWidthsUpdate();
   };
 
   private _updateTableStyles() {
     if (this.tableElement) {
       Object.assign(this.tableElement.style, {
         tableLayout: 'fixed',
-        width: `${this.totalWidth}px`,
+        width: `${this.state.getTotalWidth()}px`,
       });
     }
   }
