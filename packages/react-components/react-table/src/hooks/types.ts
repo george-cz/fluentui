@@ -209,7 +209,7 @@ export interface TableColumnSizingOptions {
 export type ColumnResizeState = {
   getColumnWidth: (columnId: ColumnId) => number;
   getTotalWidth: () => number;
-  setColumnWidth: (columnId: ColumnId, width: number, availableWidth: number) => void;
+  setColumnWidth: (columnId: ColumnId, width: number) => void;
   setColumnIdealWidth: (columnId: ColumnId, minWidth: number) => void;
   getLastColumn: () => ColumnWidthState;
   getLength: () => number;
@@ -217,4 +217,5 @@ export type ColumnResizeState = {
   getColumnById: (columnId: ColumnId) => ColumnWidthState;
   getColumns: () => ColumnWidthState[];
   resetLayout: (availableWidth: number) => void;
+  setContainerWidth: (containerWidth: number) => void;
 };

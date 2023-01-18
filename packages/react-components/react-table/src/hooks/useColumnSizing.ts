@@ -87,7 +87,7 @@ function useColumnSizingState<TItem>(
       getOnMouseDown: (columnId: ColumnId) => manager.getOnMouseDown(columnId),
       getColumnWidth: (columnId: ColumnId) => columnResizeState.getColumnWidth(columnId),
       getTotalWidth: () => columnResizeState.getTotalWidth(),
-      setColumnWidth: (columnId: ColumnId, newSize: number) => manager.setColumnWidth(columnId, newSize),
+      setColumnWidth: (columnId: ColumnId, newSize: number) => columnResizeState.setColumnWidth(columnId, newSize),
       getColumnWidths: () => columnResizeState.getColumns(),
       getColumnProps: (columnId: ColumnId) => getColumnProps(columnResizeState.getColumnById(columnId)),
     },

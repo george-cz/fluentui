@@ -78,7 +78,11 @@ export class ColumnResize {
     this.container = document.createElement('div');
     this.tableElement = table;
     table.insertAdjacentElement('beforebegin', this.container);
-    this.resetLayout();
+
+    const { width } = this.container.getBoundingClientRect();
+    this.state.setContainerWidth(width);
+    this.state.resetLayout(width);
+
     this.resizeObserver.observe(this.container);
   }
 
@@ -97,9 +101,9 @@ export class ColumnResize {
 
   public setColumnWidth(columnId: ColumnId, newWidth: number, isSettingDirectly = true) {
     // const column = this._getColumn(columnId);
-    const availableWidth = this.container.getBoundingClientRect().width;
+    // const availableWidth = this.container.getBoundingClientRect().width;
 
-    this.state.setColumnWidth(columnId, newWidth, availableWidth);
+    this.state.setColumnWidth(columnId, newWidth);
 
     // if (newWidth >= column.minWidth) {
     //   const dx = column.width - newWidth;
@@ -186,37 +190,34 @@ export class ColumnResize {
     this.state = state;
   }
 
-  public resetLayout() {
-    const { width: containerWidth } = this.container.getBoundingClientRect();
-    this.state.resetLayout(containerWidth);
-  }
-
   private _handleResize = () => {
-    if (this.resizing) {
-      return;
-    }
+    const { width } = this.container.getBoundingClientRect();
+    this.state.setContainerWidth(width);
+    // if (this.resizing) {
+    //   return;
+    // }
 
-    const { width: availableWidth } = this.container.getBoundingClientRect();
+    // const { width: availableWidth } = this.container.getBoundingClientRect();
 
-    let totalWidth = this.state.getTotalWidth();
-    if (availableWidth > totalWidth) {
-      this.columns[this.columns.length - 1].width += availableWidth - totalWidth;
-    } else {
-      let i = this.columns.length - 1;
-      while (i >= 0 && totalWidth > availableWidth) {
-        const column = this.columns[i];
+    // let totalWidth = this.state.getTotalWidth();
+    // if (availableWidth > totalWidth) {
+    //   this.columns[this.columns.length - 1].width += availableWidth - totalWidth;
+    // } else {
+    //   let i = this.columns.length - 1;
+    //   while (i >= 0 && totalWidth > availableWidth) {
+    //     const column = this.columns[i];
 
-        if (column.width > column.minWidth) {
-          const diffAvailableWidth = totalWidth - availableWidth;
-          const adjust = Math.min(column.width - column.minWidth, diffAvailableWidth);
-          column.width -= adjust;
-          totalWidth -= adjust;
-        }
-        i--;
-      }
-    }
+    //     if (column.width > column.minWidth) {
+    //       const diffAvailableWidth = totalWidth - availableWidth;
+    //       const adjust = Math.min(column.width - column.minWidth, diffAvailableWidth);
+    //       column.width -= adjust;
+    //       totalWidth -= adjust;
+    //     }
+    //     i--;
+    //   }
+    // }
 
-    this._updateTableStyles();
+    // this._updateTableStyles();
     // this.onColumnWidthsUpdate();
   };
 
