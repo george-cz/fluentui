@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ColumnResize, ColumnWidthOptions } from './ColumnResize';
+import { ColumnResize } from './ColumnResize';
 import {
   ColumnId,
   ColumnWidthProps,
@@ -9,12 +9,6 @@ import {
   TableState,
 } from './types';
 import { useColumnResizeState } from './useColumnResizeState';
-
-// why are there 2 layout components for cells ? -> try to consolidate to one
-// column collapse priority -> verify DetailsList
-// window resizing
-// click + drag resize
-// change requirements without users changing code
 
 export const defaultColumnSizingState: TableColumnSizingState = {
   getColumnWidth: () => 0,
@@ -34,17 +28,15 @@ export function useColumnSizing<TItem>(options: TableColumnSizingOptions = {}) {
 function getColumnProps(column: ColumnWidthState): ColumnWidthProps {
   try {
     const width = column.width;
-    const style = {
-      // native styles
-      width,
-
-      // non-native element styles (flex layout)
-      minWidth: width,
-      maxWidth: width,
-    };
     return {
       columnId: column.columnId,
-      style,
+      style: {
+        // native styles
+        width,
+        // non-native element styles (flex layout)
+        minWidth: width,
+        maxWidth: width,
+      },
     };
   } catch {
     return { style: {}, columnId: '' };
@@ -68,10 +60,6 @@ function useColumnSizingState<TItem>(
   }, [manager, tableRef]);
 
   React.useEffect(() => {
-    manager.updateColumns(columns.map(({ columnId }) => ({ columnId })));
-  }, [columns, manager]);
-
-  React.useEffect(() => {
     manager.updateState(columnResizeState);
   }, [columnResizeState, manager]);
 
@@ -87,7 +75,10 @@ function useColumnSizingState<TItem>(
       getTotalWidth: () => columnResizeState.getTotalWidth(),
       setColumnWidth: (columnId: ColumnId, newSize: number) => columnResizeState.setColumnWidth(columnId, newSize),
       getColumnWidths: () => columnResizeState.getColumns(),
-      getColumnProps: (columnId: ColumnId) => getColumnProps(columnResizeState.getColumnById(columnId)),
+      getColumnProps: (columnId: ColumnId) => {
+        const col = columnResizeState.getColumnById(columnId);
+        return col ? getColumnProps(col) : {};
+      },
     },
   };
 }

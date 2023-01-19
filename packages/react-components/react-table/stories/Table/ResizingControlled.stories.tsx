@@ -66,6 +66,19 @@ export const ResizingControlled = () => {
     }
   };
 
+  const insertColumn = () => {
+    const newColumn = createColumn<Item>({
+      columnId: Date.now().toString(),
+      compare: (a, b) => {
+        return a.first - b.first;
+      },
+    });
+    setColumns([...columns.slice(0, 2), newColumn, ...columns.slice(2)]);
+  };
+  const removeColumn = () => {
+    setColumns([...columns.slice(0, 2), ...columns.slice(3)]);
+  };
+
   const { getRows, columnSizing, tableRef } = useTableFeatures(
     {
       columns,
@@ -76,6 +89,8 @@ export const ResizingControlled = () => {
 
   return (
     <>
+      <button onClick={insertColumn}>Add column</button>
+      <button onClick={removeColumn}>Remove column</button>
       <Table ref={tableRef} columnSizingState={columnSizing}>
         <TableHeader>
           <TableRow>

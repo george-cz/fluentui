@@ -4,9 +4,21 @@ import { ColumnDefinition, ColumnId, ColumnResizeState, ColumnWidthState } from 
 const DEFAULT_WIDTH = 150;
 const DEFAULT_MIN_WIDTH = 100;
 
-function columnDefinitionsToState<T>(columns: ColumnDefinition<T>[]): ColumnWidthState[] {
-  return columns.map(column => {
+function columnDefinitionsToState<T>(
+  columns: ColumnDefinition<T>[],
+  state: ColumnWidthState[] = [],
+): ColumnWidthState[] {
+  let updated = false;
+
+  const updatedState = columns.map((column, index) => {
     const { columnId } = column;
+    const existingColumnState = state.find(col => col.columnId === column.columnId);
+
+    if (existingColumnState) {
+      return existingColumnState;
+    }
+
+    updated = true;
     return {
       columnId,
       width: DEFAULT_MIN_WIDTH,
@@ -15,14 +27,31 @@ function columnDefinitionsToState<T>(columns: ColumnDefinition<T>[]): ColumnWidt
       padding: 16,
     };
   });
+
+  if (updatedState.length !== state.length) {
+    return updatedState;
+  }
+
+  const a1 = state.map(({ columnId }) => columnId);
+  const a2 = updatedState.map(({ columnId }) => columnId);
+
+  if (!a1.every((v, i) => v === a2[i])) {
+    updated = true;
+  }
+
+  return updated ? updatedState : state;
+
+  // return {
+  //   columnId,
+  //   width: DEFAULT_MIN_WIDTH,
+  //   minWidth: DEFAULT_MIN_WIDTH,
+  //   idealWidth: DEFAULT_WIDTH,
+  //   padding: 16,
+  // };
 }
 
 const getColumnById = (state: ColumnWidthState[], columnId: ColumnId) => {
-  const column = state.find(c => c.columnId === columnId);
-  if (!column) {
-    throw new Error(`Couldn't find column ${columnId}.`);
-  }
-  return column;
+  return state.find(c => c.columnId === columnId);
 };
 
 function getColumnByIndex(state: ColumnWidthState[], index: number) {
@@ -43,10 +72,7 @@ function getLength(state: ColumnWidthState[]) {
 
 function getColumnWidth(state: ColumnWidthState[], columnId: ColumnId): number {
   const column = getColumnById(state, columnId);
-  if (!column) {
-    throw new Error(`Column ${columnId} does not exist`);
-  }
-  return column.width;
+  return column?.width ?? 0;
 }
 
 const setColumnProperty = (
@@ -57,11 +83,11 @@ const setColumnProperty = (
 ) => {
   const currentColumn = getColumnById(localState, columnId);
 
-  if (currentColumn[property] === value) {
+  if (!currentColumn || currentColumn?.[property] === value) {
     return localState;
   }
 
-  const updatedColumn = { ...getColumnById(localState, columnId), [property]: value };
+  const updatedColumn = { ...currentColumn, [property]: value };
 
   const newState = localState.reduce((acc, current) => {
     if (current.columnId === updatedColumn.columnId) {
@@ -73,25 +99,45 @@ const setColumnProperty = (
   return newState;
 };
 
-function recalculateWidthsToFitContainer(state: ColumnWidthState[], containerWidth: number) {
+function adjustColumnWidthsToFitContainer(state: ColumnWidthState[], containerWidth: number) {
   let newState = state;
+  let i;
   const totalWidth = getTotalWidth(newState);
 
+  // The total width is smaller, we are expanding columns
   if (totalWidth < containerWidth) {
-    return newState;
+    let difference = containerWidth - totalWidth;
+    i = 0;
+    // We start at the beginning and assign the columns their ideal width
+    while (i < newState.length && difference > 0) {
+      const currentCol = getColumnByIndex(newState, i);
+      const colAdjustment = Math.min(currentCol.idealWidth - currentCol.width, difference);
+      newState = setColumnProperty(newState, currentCol.columnId, 'width', currentCol.width + colAdjustment);
+      difference -= colAdjustment;
+
+      // if there is still empty space, after all columns are their ideal sizes, assign it to the last column
+      if (i === newState.length - 1 && difference > 0) {
+        newState = setColumnProperty(newState, currentCol.columnId, 'width', currentCol.width + difference);
+      }
+
+      i++;
+    }
   }
 
-  let overflowsBy = totalWidth - containerWidth;
-
-  let i = newState.length - 1;
-  while (i >= 0 && overflowsBy > 0) {
-    const currentCol = getColumnByIndex(newState, i);
-    if (currentCol.width > currentCol.minWidth) {
-      const colAdjustment = Math.min(currentCol.width - currentCol.minWidth, overflowsBy);
-      overflowsBy -= colAdjustment;
-      newState = setColumnProperty(newState, currentCol.columnId, 'width', currentCol.width - colAdjustment);
+  // The total width is larger than container, we need to squash the columns
+  else if (totalWidth > containerWidth) {
+    let difference = totalWidth - containerWidth;
+    // We start with the last column
+    i = newState.length - 1;
+    while (i >= 0 && difference > 0) {
+      const currentCol = getColumnByIndex(newState, i);
+      if (currentCol.width > currentCol.minWidth) {
+        const colAdjustment = Math.min(currentCol.width - currentCol.minWidth, difference);
+        difference -= colAdjustment;
+        newState = setColumnProperty(newState, currentCol.columnId, 'width', currentCol.width - colAdjustment);
+      }
+      i--;
     }
-    i--;
   }
 
   return newState;
@@ -101,40 +147,17 @@ export function useColumnResizeState<T>(columns: ColumnDefinition<T>[]): ColumnR
   const [state, setState] = useState<ColumnWidthState[]>(columnDefinitionsToState(columns));
   const [containerWidth, setContainerWidth] = useState<number>(0);
 
-  // On container resize
   useEffect(() => {
-    let newState = state;
-    const totalWidth = getTotalWidth(newState);
-
-    // container size increased
-    if (containerWidth > totalWidth) {
-      let difference = containerWidth - totalWidth;
-      let i = 0;
-      while (i < newState.length && difference > 0) {
-        const currentCol = getColumnByIndex(newState, i);
-        const colAdjustment = Math.min(currentCol.idealWidth - currentCol.width, difference);
-        newState = setColumnProperty(newState, currentCol.columnId, 'width', currentCol.width + colAdjustment);
-        difference -= colAdjustment;
-        i++;
-      }
-
-      // if there is still empty space, after all columns are their ideal sizes, fill the last column
-      if (difference > 0) {
-        const lastColumn = newState[newState.length - 1];
-        newState = setColumnProperty(newState, lastColumn.columnId, 'width', lastColumn.width + difference);
-      }
-    } else {
-      newState = recalculateWidthsToFitContainer(newState, containerWidth);
-    }
-    setState(newState);
-  }, [containerWidth, state]);
+    const intermediateState = columnDefinitionsToState(columns, state);
+    setState(adjustColumnWidthsToFitContainer(intermediateState, containerWidth));
+  }, [columns, containerWidth, state]);
 
   const setColumnWidth = (columnId: ColumnId, width: number) => {
     const column = getColumnById(state, columnId);
     let newState = [...state];
 
     // Return early if the new width should result in smaller than minimum
-    if (width < column.minWidth) {
+    if (!column || width < column.minWidth) {
       return;
     }
 
@@ -142,21 +165,10 @@ export function useColumnResizeState<T>(columns: ColumnDefinition<T>[]): ColumnR
     newState = setColumnProperty(newState, columnId, 'width', width);
     // Set this width as idealWidth, because its a deliberate change, not a recalculation because of container
     newState = setColumnProperty(newState, columnId, 'idealWidth', width);
+    // Adjust the widths to the container size
+    newState = adjustColumnWidthsToFitContainer(newState, containerWidth);
 
-    const newTotalWidth = getTotalWidth(newState);
-
-    // The new width overflows the container, adjust other columns accordingly
-    if (newTotalWidth > containerWidth) {
-      newState = recalculateWidthsToFitContainer(newState, containerWidth);
-    }
-    // The resulting width is smaller than available width, adjust the last column to take it up
-    else {
-      const lastCol = getLastColumn(newState);
-      const difference = containerWidth - newTotalWidth;
-      if (difference > 0) {
-        newState = setColumnProperty(newState, lastCol.columnId, 'width', lastCol.width + difference);
-      }
-    }
+    // Commit the state update
     setState(newState);
   };
 

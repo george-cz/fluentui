@@ -188,8 +188,8 @@ export interface ColumnWidthState {
 }
 
 export interface ColumnWidthProps {
-  style: React.CSSProperties;
-  columnId: ColumnId;
+  style?: React.CSSProperties;
+  columnId?: ColumnId;
 }
 
 export interface TableColumnSizingState {
@@ -214,7 +214,7 @@ export type ColumnResizeState = {
   getLastColumn: () => ColumnWidthState;
   getLength: () => number;
   getColumnByIndex: (index: number) => ColumnWidthState;
-  getColumnById: (columnId: ColumnId) => ColumnWidthState;
+  getColumnById: (columnId: ColumnId) => ColumnWidthState | undefined;
   getColumns: () => ColumnWidthState[];
   resetLayout: (availableWidth: number) => void;
   setContainerWidth: (containerWidth: number) => void;
