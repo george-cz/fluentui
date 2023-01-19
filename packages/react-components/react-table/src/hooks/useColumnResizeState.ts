@@ -73,6 +73,30 @@ const setColumnProperty = (
   return newState;
 };
 
+function recalculateWidthsToFitContainer(state: ColumnWidthState[], containerWidth: number) {
+  let newState = [...state];
+  const totalWidth = getTotalWidth(newState);
+
+  if (totalWidth < containerWidth) {
+    return newState;
+  }
+
+  let overflowsBy = totalWidth - containerWidth;
+
+  let i = newState.length - 1;
+  while (i >= 0 && overflowsBy > 0) {
+    const currentCol = getColumnByIndex(newState, i);
+    if (currentCol.width > currentCol.minWidth) {
+      const colAdjustment = Math.min(currentCol.width - currentCol.minWidth, overflowsBy);
+      overflowsBy -= colAdjustment;
+      newState = setColumnProperty(newState, currentCol.columnId, 'width', currentCol.width - colAdjustment);
+    }
+    i--;
+  }
+
+  return newState;
+}
+
 export function useColumnResizeState<T>(columns: ColumnDefinition<T>[]): ColumnResizeState {
   const [state, setState] = useState<ColumnWidthState[]>(columnDefinitionsToState(columns));
   const [containerWidth, setContainerWidth] = useState<number>(0);
@@ -80,10 +104,11 @@ export function useColumnResizeState<T>(columns: ColumnDefinition<T>[]): ColumnR
   // On container resize
   useEffect(() => {
     let newState = [...state];
+    const totalWidth = getTotalWidth(newState);
 
     // container size increased
-    if (containerWidth > getTotalWidth(newState)) {
-      let difference = containerWidth - getTotalWidth(newState);
+    if (containerWidth > totalWidth) {
+      let difference = containerWidth - totalWidth;
       let i = 0;
       while (i < newState.length && difference > 0) {
         const currentCol = getColumnByIndex(newState, i);
@@ -93,24 +118,15 @@ export function useColumnResizeState<T>(columns: ColumnDefinition<T>[]): ColumnR
         i++;
       }
 
-      // if there is still empty space, fill the last column
-      // difference = containerWidth - getTotalWidth(newState);
+      // if there is still empty space, after all columns are their ideal sizes, fill the last column
       if (difference > 0) {
         const lastColumn = newState[newState.length - 1];
         newState = setColumnProperty(newState, lastColumn.columnId, 'width', lastColumn.width + difference);
       }
     } else {
-      // container size decreased, set the last column to its width, so that the columns are recalculated
-      console.log('ho');
-
-      //TODO DOpsat
-      // const lastColumn = state[state.length - 1];
-      // setColumnWidth(lastColumn.columnId, lastColumn.width);
+      newState = recalculateWidthsToFitContainer(newState, containerWidth);
     }
-
-    console.log('settingState', newState);
     setState(newState);
-    // resetLayout(containerWidth);
   }, [containerWidth]);
 
   const setColumnWidth = (columnId: ColumnId, width: number) => {
@@ -124,24 +140,14 @@ export function useColumnResizeState<T>(columns: ColumnDefinition<T>[]): ColumnR
 
     // Adjust the column width and measure the new total width
     newState = setColumnProperty(newState, columnId, 'width', width);
+    // Set this width as idealWidth, because its a deliberate change, not a recalculation because of container
     newState = setColumnProperty(newState, columnId, 'idealWidth', width);
 
     const newTotalWidth = getTotalWidth(newState);
 
     // The new width overflows the container, adjust other columns accordingly
     if (newTotalWidth > containerWidth) {
-      let overflowsBy = newTotalWidth - containerWidth;
-
-      let i = newState.length - 1;
-      while (i >= 0 && overflowsBy > 0) {
-        const currentCol = getColumnByIndex(newState, i);
-        if (currentCol.width > currentCol.minWidth) {
-          const colAdjustment = Math.min(currentCol.width - currentCol.minWidth, overflowsBy);
-          overflowsBy -= colAdjustment;
-          newState = setColumnProperty(newState, currentCol.columnId, 'width', currentCol.width - colAdjustment);
-        }
-        i--;
-      }
+      newState = recalculateWidthsToFitContainer(newState, containerWidth);
     }
     // The resulting width is smaller than available width, adjust the last column to take it up
     else {

@@ -188,6 +188,7 @@ export class ColumnResize {
 
   public updateState(state: ColumnResizeState) {
     this.state = state;
+    this._updateTableStyles();
   }
 
   private _handleResize = () => {
