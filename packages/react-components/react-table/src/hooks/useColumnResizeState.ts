@@ -4,13 +4,24 @@ import { ColumnDefinition, ColumnId, ColumnResizeState, ColumnWidthState } from 
 const DEFAULT_WIDTH = 150;
 const DEFAULT_MIN_WIDTH = 100;
 
+/**
+ * This function takes the column definitions and the curent ColumnWidthState and returns new state.
+ *  - It uses existing state for existing columns.
+ *  - It removes any state for columns no longer present.
+ *  - It checks if any column has been replaced and returns updated state if so
+ *  - It returns old state if no changes in the state have been made (so that react doesn't call effects)
+ * @param columns
+ * @param state
+ * @returns
+ */
+
 function columnDefinitionsToState<T>(
   columns: ColumnDefinition<T>[],
   state: ColumnWidthState[] = [],
 ): ColumnWidthState[] {
   let updated = false;
 
-  const updatedState = columns.map((column, index) => {
+  const updatedState = columns.map(column => {
     const { columnId } = column;
     const existingColumnState = state.find(col => col.columnId === column.columnId);
 
@@ -40,19 +51,11 @@ function columnDefinitionsToState<T>(
   }
 
   return updated ? updatedState : state;
-
-  // return {
-  //   columnId,
-  //   width: DEFAULT_MIN_WIDTH,
-  //   minWidth: DEFAULT_MIN_WIDTH,
-  //   idealWidth: DEFAULT_WIDTH,
-  //   padding: 16,
-  // };
 }
 
-const getColumnById = (state: ColumnWidthState[], columnId: ColumnId) => {
+function getColumnById(state: ColumnWidthState[], columnId: ColumnId) {
   return state.find(c => c.columnId === columnId);
-};
+}
 
 function getColumnByIndex(state: ColumnWidthState[], index: number) {
   return state[index];
@@ -62,9 +65,9 @@ function getTotalWidth(state: ColumnWidthState[]): number {
   return state.reduce((sum, column) => sum + column.width + column.padding, 0);
 }
 
-const getLastColumn = (state: ColumnWidthState[]) => {
+function getLastColumn(state: ColumnWidthState[]) {
   return state[state.length - 1];
-};
+}
 
 function getLength(state: ColumnWidthState[]) {
   return state.length;
@@ -75,12 +78,24 @@ function getColumnWidth(state: ColumnWidthState[], columnId: ColumnId): number {
   return column?.width ?? 0;
 }
 
-const setColumnProperty = (
+/**
+ * This function takes the current state and returns an updated state, so that it can be set.
+ * The reason for this is that we can update the state multiple times before commiting to render.
+ * This is an optimization and also prevents flickering.
+ * It also returns new copy of the state only if the value is different than the one currently in
+ * the state, further preventing unnecessary updates.
+ * @param localState
+ * @param columnId
+ * @param property
+ * @param value
+ * @returns
+ */
+function setColumnProperty(
   localState: ColumnWidthState[],
   columnId: ColumnId,
   property: keyof ColumnWidthState,
   value: number,
-) => {
+) {
   const currentColumn = getColumnById(localState, columnId);
 
   if (!currentColumn || currentColumn?.[property] === value) {
@@ -97,8 +112,17 @@ const setColumnProperty = (
   }, [] as ColumnWidthState[]);
 
   return newState;
-};
+}
 
+/**
+ * This function takes the state and container width and makes sure the each column in the state
+ * is its optimal width, and that the columns
+ * a) fit to the container
+ * b) always fill the whole container
+ * @param state
+ * @param containerWidth
+ * @returns
+ */
 function adjustColumnWidthsToFitContainer(state: ColumnWidthState[], containerWidth: number) {
   let newState = state;
   let i;
@@ -148,7 +172,9 @@ export function useColumnResizeState<T>(columns: ColumnDefinition<T>[]): ColumnR
   const [containerWidth, setContainerWidth] = useState<number>(0);
 
   useEffect(() => {
+    // First, make sure we update the state with the last columns received as parameter
     const intermediateState = columnDefinitionsToState(columns, state);
+    // then use this new state and recalculate any widths as necessary
     setState(adjustColumnWidthsToFitContainer(intermediateState, containerWidth));
   }, [columns, containerWidth, state]);
 
