@@ -74,7 +74,7 @@ const setColumnProperty = (
 };
 
 function recalculateWidthsToFitContainer(state: ColumnWidthState[], containerWidth: number) {
-  let newState = [...state];
+  let newState = state;
   const totalWidth = getTotalWidth(newState);
 
   if (totalWidth < containerWidth) {
@@ -103,7 +103,7 @@ export function useColumnResizeState<T>(columns: ColumnDefinition<T>[]): ColumnR
 
   // On container resize
   useEffect(() => {
-    let newState = [...state];
+    let newState = state;
     const totalWidth = getTotalWidth(newState);
 
     // container size increased
@@ -127,7 +127,7 @@ export function useColumnResizeState<T>(columns: ColumnDefinition<T>[]): ColumnR
       newState = recalculateWidthsToFitContainer(newState, containerWidth);
     }
     setState(newState);
-  }, [containerWidth]);
+  }, [containerWidth, state]);
 
   const setColumnWidth = (columnId: ColumnId, width: number) => {
     const column = getColumnById(state, columnId);
@@ -157,7 +157,6 @@ export function useColumnResizeState<T>(columns: ColumnDefinition<T>[]): ColumnR
         newState = setColumnProperty(newState, lastCol.columnId, 'width', lastCol.width + difference);
       }
     }
-
     setState(newState);
   };
 
@@ -191,7 +190,6 @@ export function useColumnResizeState<T>(columns: ColumnDefinition<T>[]): ColumnR
       const { width } = column;
       newState = setColumnProperty(newState, column.columnId, 'width', width + widthToFill);
     }
-
     setState(newState);
   };
 

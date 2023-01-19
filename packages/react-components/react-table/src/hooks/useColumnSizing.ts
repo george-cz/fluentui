@@ -58,7 +58,6 @@ function useColumnSizingState<TItem>(
   const { columns, tableRef } = tableState;
 
   const columnResizeState = useColumnResizeState<TItem>(columns);
-  const colStatus = columnResizeState.getColumns();
 
   const manager = React.useState(() => new ColumnResize(columnResizeState, options))[0];
 
@@ -73,13 +72,12 @@ function useColumnSizingState<TItem>(
   }, [columns, manager]);
 
   React.useEffect(() => {
-    console.log(columnResizeState.getColumns().map(c => c.width));
     manager.updateState(columnResizeState);
-  }, [colStatus, manager]);
+  }, [columnResizeState, manager]);
 
   React.useEffect(() => {
     manager.updateOptions(options);
-  }, [manager, options]);
+  }, [columnResizeState, manager, options]);
 
   return {
     ...tableState,
