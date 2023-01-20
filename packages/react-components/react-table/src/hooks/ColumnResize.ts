@@ -16,13 +16,15 @@ export class ColumnResize {
   private container: HTMLElement;
   private tableElement: HTMLElement | null = null;
   private resizeObserver: ResizeObserver;
+  private globalWin: Window | null | undefined;
   private options?: TableColumnSizingOptions;
 
-  constructor(state: ColumnResizeState, options: TableColumnSizingOptions) {
+  constructor(state: ColumnResizeState, options: TableColumnSizingOptions, globalWin: Window | null | undefined) {
     this.state = state;
     this.container = document.body;
     this.resizeObserver = new ResizeObserver(this._handleResize);
     this.options = options;
+    this.globalWin = globalWin;
   }
 
   public init(table: HTMLElement) {
@@ -123,18 +125,24 @@ export class ColumnResize {
         this.totalDistanceTraveled = 0;
       };
 
+      const handleMouseMove = (e: MouseEvent) => {
+        const dx = e.clientX - this.mouseX;
+        this.totalDistanceTraveled = this.totalDistanceTraveled + dx;
+
+        // this.handleLastColumnResize(columnId);
+        // Update the local width for the column and set it
+        currentWidth = currentWidth + dx;
+        this.setColumnWidth(columnId, currentWidth, true);
+        this.mouseX = e.clientX;
+      };
+
       const onMouseMove = (e: MouseEvent) => {
         // Using requestAnimationFrame here drastically improves resizing on slower CPUs
-        requestAnimationFrame(() => {
-          const dx = e.clientX - this.mouseX;
-          this.totalDistanceTraveled = this.totalDistanceTraveled + dx;
-
-          // this.handleLastColumnResize(columnId);
-          // Update the local width for the column and set it
-          currentWidth = currentWidth + dx;
-          this.setColumnWidth(columnId, currentWidth, true);
-          this.mouseX = e.clientX;
-        });
+        if (typeof this.globalWin?.requestAnimationFrame === 'function') {
+          requestAnimationFrame(() => handleMouseMove(e));
+        } else {
+          handleMouseMove(e);
+        }
       };
 
       document.addEventListener('mouseup', onMouseUp);

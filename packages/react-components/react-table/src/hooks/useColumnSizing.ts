@@ -9,6 +9,7 @@ import {
   TableState,
 } from './types';
 import { useColumnResizeState } from './useColumnResizeState';
+import { useFluent } from '../../../react-shared-contexts/src/ProviderContext';
 
 export const defaultColumnSizingState: TableColumnSizingState = {
   getColumnWidth: () => 0,
@@ -45,9 +46,12 @@ function useColumnSizingState<TItem>(
 ): TableState<TItem> {
   const { columns, tableRef } = tableState;
 
+  const { targetDocument } = useFluent();
+  const win = targetDocument?.defaultView;
+
   const columnResizeState = useColumnResizeState<TItem>(columns);
 
-  const manager = React.useState(() => new ColumnResize(columnResizeState, options))[0];
+  const manager = React.useState(() => new ColumnResize(columnResizeState, options, win))[0];
 
   React.useEffect(() => {
     if (tableRef.current) {
