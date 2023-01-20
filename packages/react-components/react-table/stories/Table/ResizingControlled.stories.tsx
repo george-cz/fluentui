@@ -53,27 +53,27 @@ const items: Item[] = new Array(10).fill(0).map((_, i) => ({ first: i, second: i
 export const ResizingControlled = () => {
   const [columns, setColumns] = useState<ColumnDefinition<Item>[]>(columnsDef);
 
-  const onColumnOverflow = (columnId: ColumnId) => {
-    const x = columns.slice(0, -1);
-    setColumns(x);
-  };
+  // const onColumnOverflow = (columnId: ColumnId) => {
+  //   const x = columns.slice(0, -1);
+  //   setColumns(x);
+  // };
 
-  const onColSpaceAvailable = (availableSpace: number) => {
-    // console.log('availableSpace', availableSpace);
-    if (availableSpace > 166 && columns.length !== columnsDef.length) {
-      const toAdd = columnsDef[columns.length];
-      setColumns([...columns, toAdd]);
-    }
-  };
+  // const onColSpaceAvailable = (availableSpace: number) => {
+  //   // console.log('availableSpace', availableSpace);
+  //   if (availableSpace > 166 && columns.length !== columnsDef.length) {
+  //     const toAdd = columnsDef[columns.length];
+  //     setColumns([...columns, toAdd]);
+  //   }
+  // };
 
   const insertColumn = () => {
     const newColumn = createColumn<Item>({
-      columnId: Date.now().toString(),
+      columnId: Date.now().toString().split('').slice(-4).join(''),
       compare: (a, b) => {
         return a.first - b.first;
       },
     });
-    setColumns([...columns.slice(0, 2), newColumn, ...columns.slice(2)]);
+    setColumns([...columns, newColumn]);
   };
   const removeColumn = () => {
     setColumns([...columns.slice(0, 2), ...columns.slice(3)]);
@@ -84,7 +84,17 @@ export const ResizingControlled = () => {
       columns,
       items,
     },
-    [useColumnSizing({ onColumnOverflow, onColSpaceAvailable })],
+    [
+      useColumnSizing({
+        /*onColumnOverflow, onColSpaceAvailable*/
+      }),
+    ],
+  );
+
+  console.log(
+    '???',
+    columns.length,
+    columns.map(c => columnSizing.getColumnProps(c.columnId).style),
   );
 
   return (

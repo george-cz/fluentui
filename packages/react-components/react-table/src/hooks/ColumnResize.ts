@@ -113,6 +113,10 @@ export class ColumnResize {
 
       this.mouseX = mouseDownEvent.clientX;
 
+      // Keep the width locally so that we decouple the calculation of the next with from rendering.
+      // This makes the whole experience much faster and more precise
+      let currentWidth = this.state.getColumnWidth(columnId);
+
       const onMouseUp = (e: MouseEvent) => {
         document.removeEventListener('mouseup', onMouseUp);
         document.removeEventListener('mousemove', onMouseMove);
@@ -120,12 +124,17 @@ export class ColumnResize {
       };
 
       const onMouseMove = (e: MouseEvent) => {
-        const dx = e.clientX - this.mouseX;
-        this.totalDistanceTraveled = this.totalDistanceTraveled + dx;
-        this.mouseX = e.clientX;
-        const currentWidth = this.state.getColumnWidth(columnId);
-        this.handleLastColumnResize(columnId);
-        this.setColumnWidth(columnId, currentWidth + dx, true);
+        // Using requestAnimationFrame here drastically improves resizing on slower CPUs
+        requestAnimationFrame(() => {
+          const dx = e.clientX - this.mouseX;
+          this.totalDistanceTraveled = this.totalDistanceTraveled + dx;
+
+          // this.handleLastColumnResize(columnId);
+          // Update the local width for the column and set it
+          currentWidth = currentWidth + dx;
+          this.setColumnWidth(columnId, currentWidth, true);
+          this.mouseX = e.clientX;
+        });
       };
 
       document.addEventListener('mouseup', onMouseUp);

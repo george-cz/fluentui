@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ColumnDefinition, ColumnId, ColumnResizeState, ColumnWidthState } from './types';
+import { ClosedCaptionToggle } from '@fluentui/keyboard-keys';
 
 const DEFAULT_WIDTH = 150;
 const DEFAULT_MIN_WIDTH = 100;
@@ -140,8 +141,9 @@ function adjustColumnWidthsToFitContainer(state: ColumnWidthState[], containerWi
       difference -= colAdjustment;
 
       // if there is still empty space, after all columns are their ideal sizes, assign it to the last column
-      if (i === newState.length - 1 && difference > 0) {
-        newState = setColumnProperty(newState, currentCol.columnId, 'width', currentCol.width + difference);
+      if (i === newState.length - 1 && difference !== 0) {
+        const lastCol = getColumnByIndex(newState, i);
+        newState = setColumnProperty(newState, lastCol.columnId, 'width', lastCol.width + difference);
       }
 
       i++;

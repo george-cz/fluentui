@@ -26,21 +26,17 @@ export function useColumnSizing<TItem>(options: TableColumnSizingOptions = {}) {
 }
 
 function getColumnProps(column: ColumnWidthState): ColumnWidthProps {
-  try {
-    const width = column.width;
-    return {
-      columnId: column.columnId,
-      style: {
-        // native styles
-        width,
-        // non-native element styles (flex layout)
-        minWidth: width,
-        maxWidth: width,
-      },
-    };
-  } catch {
-    return { style: {}, columnId: '' };
-  }
+  const width = column.width;
+  return {
+    columnId: column.columnId,
+    style: {
+      // native styles
+      width,
+      // non-native element styles (flex layout)
+      minWidth: width,
+      maxWidth: width,
+    },
+  };
 }
 
 function useColumnSizingState<TItem>(
@@ -77,7 +73,7 @@ function useColumnSizingState<TItem>(
       getColumnWidths: () => columnResizeState.getColumns(),
       getColumnProps: (columnId: ColumnId) => {
         const col = columnResizeState.getColumnById(columnId);
-        return col ? getColumnProps(col) : {};
+        return col ? getColumnProps(col) : { columnId, style: { display: 'none' } };
       },
     },
   };
