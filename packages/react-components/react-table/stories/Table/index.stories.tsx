@@ -23,6 +23,7 @@ export { Sort } from './Sort.stories';
 export { ResizableUncontrolled } from './ResizableUncontrolled.stories';
 export { ResizableFlex } from './ResizableFlex.stories';
 export { ResizingControlled } from './ResizingControlled.stories';
+export { ResizingColumns } from './ResizingColumns.stories';
 
 export { SortControlled } from './SortControlled.stories';
 export { MultipleSelect } from './MultipleSelect.stories';

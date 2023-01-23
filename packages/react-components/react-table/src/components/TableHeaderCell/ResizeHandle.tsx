@@ -42,8 +42,16 @@ export const ResizeHandle: React.FC<DefaultResizeHandleProps> = props => {
   const styles = useDefaultHandleStyles();
   const { columnSizingState } = useTableContext();
 
+  // Make sure the clicks on the ResizeHandle are not propagated to other components that might have
+  // listeners, e.g. sorting.
+  const onClick = React.useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+  }, []);
+
   if (props.columnId && columnSizingState?.getOnMouseDown) {
-    return <div className={styles.root} onMouseDown={columnSizingState?.getOnMouseDown(props.columnId)} />;
+    return (
+      <div className={styles.root} onMouseDown={columnSizingState?.getOnMouseDown(props.columnId)} onClick={onClick} />
+    );
   }
   return null;
 };
