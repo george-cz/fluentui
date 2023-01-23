@@ -1,5 +1,5 @@
 import { useIsomorphicLayoutEffect } from '@fluentui/react-utilities';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ColumnDefinition, ColumnId, ColumnResizeState, ColumnWidthState } from './types';
 import {
   columnDefinitionsToState,
@@ -11,12 +11,10 @@ import {
   getColumnByIndex,
   getColumnWidth,
   getLength,
-  resetLayout,
 } from '../utils/columnResizeUtils';
 
-export function useColumnResizeState<T>(columns: ColumnDefinition<T>[]): ColumnResizeState {
+export function useColumnResizeState<T>(columns: ColumnDefinition<T>[], containerWidth: number): ColumnResizeState {
   const [state, setState] = useState<ColumnWidthState[]>(columnDefinitionsToState(columns));
-  const [containerWidth, setContainerWidth] = useState<number>(0);
 
   // Use layout effect here to make sure that updated columns receive proper styles immediately
   useIsomorphicLayoutEffect(() => {
@@ -64,7 +62,5 @@ export function useColumnResizeState<T>(columns: ColumnDefinition<T>[]): ColumnR
     getTotalWidth: () => getTotalWidth(state),
     setColumnIdealWidth,
     setColumnWidth,
-    setContainerWidth: (width: number) => setContainerWidth(width),
-    resetLayout: availableSize => setState(resetLayout(state, availableSize)),
   };
 }

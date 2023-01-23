@@ -1,5 +1,3 @@
-import * as React from 'react';
-import { ColumnResize } from './ColumnResize';
 import {
   ColumnId,
   ColumnWidthProps,
@@ -10,6 +8,8 @@ import {
 } from './types';
 import { useColumnResizeState } from './useColumnResizeState';
 import { useFluent } from '../../../react-shared-contexts/src/ProviderContext';
+import useColumnResizeMouseHandler from './useColumnResizeMouseHandler';
+import { useMeasureElement } from './useMeasureElement';
 
 export const defaultColumnSizingState: TableColumnSizingState = {
   getColumnWidth: () => 0,
@@ -49,28 +49,17 @@ function useColumnSizingState<TItem>(
   const { targetDocument } = useFluent();
   const win = targetDocument?.defaultView;
 
-  const columnResizeState = useColumnResizeState<TItem>(columns);
-
-  const manager = React.useState(() => new ColumnResize(columnResizeState, options, win))[0];
-
-  React.useEffect(() => {
-    if (tableRef.current) {
-      manager.init(tableRef.current);
-    }
-  }, [manager, tableRef]);
-
-  React.useEffect(() => {
-    manager.updateState(columnResizeState);
-  }, [columnResizeState, manager]);
-
-  React.useEffect(() => {
-    manager.updateOptions(options);
-  }, [columnResizeState, manager, options]);
+  // Gets the container width
+  const containerWidth = useMeasureElement(tableRef);
+  // Creates the state based on columns and available containerWidth
+  const columnResizeState = useColumnResizeState<TItem>(columns, containerWidth);
+  // Creates the mouse handler and attaches the state to it
+  const mouseHandler = useColumnResizeMouseHandler(columnResizeState, win);
 
   return {
     ...tableState,
     columnSizing: {
-      getOnMouseDown: (columnId: ColumnId) => manager.getOnMouseDown(columnId),
+      getOnMouseDown: (columnId: ColumnId) => mouseHandler.getOnMouseDown(columnId),
       getColumnWidth: (columnId: ColumnId) => columnResizeState.getColumnWidth(columnId),
       getTotalWidth: () => columnResizeState.getTotalWidth(),
       setColumnWidth: (columnId: ColumnId, newSize: number) => columnResizeState.setColumnWidth(columnId, newSize),

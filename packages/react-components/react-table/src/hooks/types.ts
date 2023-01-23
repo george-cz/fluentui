@@ -216,6 +216,4 @@ export type ColumnResizeState = {
   getColumnByIndex: (index: number) => ColumnWidthState;
   getColumnById: (columnId: ColumnId) => ColumnWidthState | undefined;
   getColumns: () => ColumnWidthState[];
-  resetLayout: (availableWidth: number) => void;
-  setContainerWidth: (containerWidth: number) => void;
 };

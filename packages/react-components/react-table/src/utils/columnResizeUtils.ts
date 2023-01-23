@@ -166,37 +166,3 @@ export function adjustColumnWidthsToFitContainer(state: ColumnWidthState[], cont
 
   return newState;
 }
-
-export const resetLayout = (state: ColumnWidthState[], availableSize: number) => {
-  let widthToFill = availableSize;
-  let newState = [...state];
-
-  // first pass, set columns to min
-  let i = 0;
-  while (i < newState.length) {
-    const column = newState[i];
-    newState = setColumnProperty(newState, column.columnId, 'width', column.minWidth);
-    widthToFill = availableSize - getTotalWidth(newState);
-    i++;
-  }
-
-  // second pass, set columns to ideal width
-  i = 0;
-  while (i < newState.length) {
-    const column = newState[i];
-    if (widthToFill > column.idealWidth + column.padding) {
-      newState = setColumnProperty(newState, column.columnId, 'width', column.idealWidth);
-      widthToFill = availableSize - getTotalWidth(newState);
-    }
-    i++;
-  }
-
-  // last columns gets the rest
-  if (widthToFill > 0) {
-    const column = getLastColumn(newState);
-    const { width } = column;
-    newState = setColumnProperty(newState, column.columnId, 'width', width + widthToFill);
-  }
-
-  return newState;
-};
