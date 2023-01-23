@@ -77,7 +77,7 @@ function useColumnSizingState<TItem>(
       getColumnWidths: () => columnResizeState.getColumns(),
       getColumnProps: (columnId: ColumnId) => {
         const col = columnResizeState.getColumnById(columnId);
-        return col ? getColumnProps(col) : { columnId, style: { display: 'none' } };
+        return col ? getColumnProps(col) : { columnId };
       },
     },
   };
