@@ -1,5 +1,5 @@
 import { useIsomorphicLayoutEffect } from '@fluentui/react-utilities';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ColumnDefinition, ColumnId, ColumnResizeState, ColumnWidthState } from './types';
 import {
   columnDefinitionsToState,

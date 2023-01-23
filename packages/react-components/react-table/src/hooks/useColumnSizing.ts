@@ -40,10 +40,7 @@ function getColumnProps(column: ColumnWidthState): ColumnWidthProps {
   };
 }
 
-function useColumnSizingState<TItem>(
-  tableState: TableState<TItem>,
-  options: TableColumnSizingOptions,
-): TableState<TItem> {
+function useColumnSizingState<TItem>(tableState: TableState<TItem>): TableState<TItem> {
   const { columns, tableRef } = tableState;
 
   const { targetDocument } = useFluent();

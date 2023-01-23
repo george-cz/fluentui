@@ -53,19 +53,6 @@ const items: Item[] = new Array(10).fill(0).map((_, i) => ({ first: i, second: i
 export const ResizingControlled = () => {
   const [columns, setColumns] = useState<ColumnDefinition<Item>[]>(columnsDef);
 
-  // const onColumnOverflow = (columnId: ColumnId) => {
-  //   const x = columns.slice(0, -1);
-  //   setColumns(x);
-  // };
-
-  // const onColSpaceAvailable = (availableSpace: number) => {
-  //   // console.log('availableSpace', availableSpace);
-  //   if (availableSpace > 166 && columns.length !== columnsDef.length) {
-  //     const toAdd = columnsDef[columns.length];
-  //     setColumns([...columns, toAdd]);
-  //   }
-  // };
-
   const insertColumn = () => {
     const newColumn = createColumn<Item>({
       columnId: Date.now().toString().split('').slice(-4).join(''),
@@ -84,11 +71,7 @@ export const ResizingControlled = () => {
       columns,
       items,
     },
-    [
-      useColumnSizing({
-        /*onColumnOverflow, onColSpaceAvailable*/
-      }),
-    ],
+    [useColumnSizing()],
   );
 
   console.log(
