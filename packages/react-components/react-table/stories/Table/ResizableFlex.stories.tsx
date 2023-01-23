@@ -8,7 +8,7 @@ import {
   TableHeaderCell,
   TableRow,
   createColumn,
-  useColumnSizing,
+  useColumnSizing_unstable,
   useTableFeatures,
 } from '@fluentui/react-components/unstable';
 import * as React from 'react';
@@ -66,7 +66,7 @@ export const ResizableFlex = () => {
       columns,
       items,
     },
-    [useColumnSizing()],
+    [useColumnSizing_unstable()],
   );
 
   return (

@@ -1,6 +1,5 @@
 import {
   ColumnDefinition,
-  ColumnId,
   Table,
   TableBody,
   TableCell,
@@ -8,7 +7,7 @@ import {
   TableHeaderCell,
   TableRow,
   createColumn,
-  useColumnSizing,
+  useColumnSizing_unstable,
   useTableFeatures,
 } from '@fluentui/react-components/unstable';
 import * as React from 'react';
@@ -62,6 +61,7 @@ export const ResizingControlled = () => {
     });
     setColumns([...columns, newColumn]);
   };
+
   const removeColumn = () => {
     setColumns([...columns.slice(0, 2), ...columns.slice(3)]);
   };
@@ -71,13 +71,7 @@ export const ResizingControlled = () => {
       columns,
       items,
     },
-    [useColumnSizing()],
-  );
-
-  console.log(
-    '???',
-    columns.length,
-    columns.map(c => columnSizing.getColumnProps(c.columnId).style),
+    [useColumnSizing_unstable()],
   );
 
   return (

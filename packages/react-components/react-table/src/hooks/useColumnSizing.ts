@@ -1,11 +1,4 @@
-import {
-  ColumnId,
-  ColumnWidthProps,
-  ColumnWidthState,
-  TableColumnSizingOptions,
-  TableColumnSizingState,
-  TableState,
-} from './types';
+import { ColumnId, ColumnWidthProps, ColumnWidthState, TableColumnSizingState, TableState } from './types';
 import { useColumnResizeState } from './useColumnResizeState';
 import { useFluent } from '../../../react-shared-contexts/src/ProviderContext';
 import useColumnResizeMouseHandler from './useColumnResizeMouseHandler';
@@ -20,10 +13,10 @@ export const defaultColumnSizingState: TableColumnSizingState = {
   getColumnProps: () => ({ style: {}, columnId: '' }),
 };
 
-export function useColumnSizing<TItem>(options: TableColumnSizingOptions = {}) {
+export function useColumnSizing_unstable<TItem>() {
   // False positive, these plugin hooks are intended to be run on every render
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  return (tableState: TableState<TItem>) => useColumnSizingState(tableState, options);
+  return (tableState: TableState<TItem>) => useColumnSizingState(tableState);
 }
 
 function getColumnProps(column: ColumnWidthState): ColumnWidthProps {

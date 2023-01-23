@@ -1,4 +1,4 @@
-export { useTableFeatures, useTableSelection, useTableSort, createColumn, useColumnSizing } from './hooks';
+export { useTableFeatures, useTableSelection, useTableSort, createColumn, useColumnSizing_unstable } from './hooks';
 export type {
   UseTableOptions,
   TableState as HeadlessTableState,
