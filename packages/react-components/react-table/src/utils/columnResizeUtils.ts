@@ -20,7 +20,7 @@ export function columnDefinitionsToState<T>(
 ): ColumnWidthState[] {
   let updated = false;
 
-  const updatedState = columns.map(column => {
+  let updatedState = columns.map(column => {
     const { columnId } = column;
     const existingColumnState = state.find(col => col.columnId === column.columnId);
 
@@ -39,6 +39,18 @@ export function columnDefinitionsToState<T>(
   });
 
   if (updatedState.length !== state.length) {
+    // Adding or removing columns, set all columns which have a different idealWidth than width to width = idealWidth,
+    // so that the adjustColumnWidthsToFitContainer can successfully expand the last column,
+    // since the column which was last before is not necessarily last now.
+    if (updatedState.length > state.length) {
+      updatedState = updatedState.map(s => {
+        if (s.idealWidth !== s.width) {
+          s.width = s.idealWidth;
+        }
+        return s;
+      });
+    }
+
     return updatedState;
   }
 
@@ -124,13 +136,12 @@ export function setColumnProperty(
  */
 export function adjustColumnWidthsToFitContainer(state: ColumnWidthState[], containerWidth: number) {
   let newState = state;
-  let i;
   const totalWidth = getTotalWidth(newState);
 
   // The total width is smaller, we are expanding columns
   if (totalWidth < containerWidth) {
     let difference = containerWidth - totalWidth;
-    i = 0;
+    let i = 0;
     // We start at the beginning and assign the columns their ideal width
     while (i < newState.length && difference > 0) {
       const currentCol = getColumnByIndex(newState, i);
@@ -149,18 +160,18 @@ export function adjustColumnWidthsToFitContainer(state: ColumnWidthState[], cont
   }
 
   // The total width is larger than container, we need to squash the columns
-  else if (totalWidth > containerWidth) {
+  else if (totalWidth >= containerWidth) {
     let difference = totalWidth - containerWidth;
     // We start with the last column
-    i = newState.length - 1;
-    while (i >= 0 && difference > 0) {
-      const currentCol = getColumnByIndex(newState, i);
+    let j = newState.length - 1;
+    while (j >= 0 && difference > 0) {
+      const currentCol = getColumnByIndex(newState, j);
       if (currentCol.width > currentCol.minWidth) {
         const colAdjustment = Math.min(currentCol.width - currentCol.minWidth, difference);
         difference -= colAdjustment;
         newState = setColumnProperty(newState, currentCol.columnId, 'width', currentCol.width - colAdjustment);
       }
-      i--;
+      j--;
     }
   }
 

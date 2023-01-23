@@ -62,8 +62,8 @@ export const ResizingControlled = () => {
     setColumns([...columns, newColumn]);
   };
 
-  const removeColumn = () => {
-    setColumns([...columns.slice(0, 2), ...columns.slice(3)]);
+  const removeColumn = (index: number) => {
+    setColumns([...columns.slice(0, index), ...columns.slice(index + 1)]);
   };
 
   const { getRows, columnSizing, tableRef } = useTableFeatures(
@@ -77,13 +77,13 @@ export const ResizingControlled = () => {
   return (
     <>
       <button onClick={insertColumn}>Add column</button>
-      <button onClick={removeColumn}>Remove column</button>
       <Table ref={tableRef} columnSizingState={columnSizing}>
         <TableHeader>
           <TableRow>
-            {columns.map(column => (
+            {columns.map((column, index) => (
               <TableHeaderCell key={column.columnId} {...columnSizing.getColumnProps(column.columnId)}>
                 Header {column.columnId}
+                <button onClick={() => removeColumn(index)}>x</button>
               </TableHeaderCell>
             ))}
           </TableRow>
