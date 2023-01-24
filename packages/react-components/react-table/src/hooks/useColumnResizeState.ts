@@ -1,6 +1,6 @@
 import { useIsomorphicLayoutEffect } from '@fluentui/react-utilities';
 import { useCallback, useState } from 'react';
-import { ColumnDefinition, ColumnId, ColumnResizeState, ColumnWidthState } from './types';
+import { ColumnDefinition, ColumnId, ColumnResizeState, ColumnWidthState, UseColumnSizingParams } from './types';
 import {
   columnDefinitionsToState,
   adjustColumnWidthsToFitContainer,
@@ -13,14 +13,22 @@ import {
   getLength,
 } from '../utils/columnResizeUtils';
 
-export function useColumnResizeState<T>(columns: ColumnDefinition<T>[], containerWidth: number): ColumnResizeState {
-  const [state, setState] = useState<ColumnWidthState[]>(columnDefinitionsToState(columns));
+export function useColumnResizeState<T>(
+  columns: ColumnDefinition<T>[],
+  containerWidth: number,
+  params: UseColumnSizingParams = {},
+): ColumnResizeState {
+  const { onColumnResize, columnSizingOptions } = params;
+
+  const [state, setState] = useState<ColumnWidthState[]>(
+    columnDefinitionsToState(columns, undefined, columnSizingOptions),
+  );
 
   // Use layout effect here to make sure that updated columns receive proper styles immediately
   useIsomorphicLayoutEffect(() => {
-    const intermediateState = columnDefinitionsToState(columns, state);
+    const intermediateState = columnDefinitionsToState(columns, state, columnSizingOptions);
     setState(adjustColumnWidthsToFitContainer(intermediateState, containerWidth));
-  }, [columns, containerWidth, state]);
+  }, [columns, containerWidth, state, columnSizingOptions]);
 
   const setColumnWidth = useCallback(
     (columnId: ColumnId, width: number) => {
@@ -39,10 +47,12 @@ export function useColumnResizeState<T>(columns: ColumnDefinition<T>[], containe
       // Adjust the widths to the container size
       newState = adjustColumnWidthsToFitContainer(newState, containerWidth);
 
+      onColumnResize?.(columnId, width);
+
       // Commit the state update
       setState(newState);
     },
-    [containerWidth, state],
+    [containerWidth, state, onColumnResize],
   );
 
   const setColumnIdealWidth = useCallback(

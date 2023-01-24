@@ -1,4 +1,11 @@
-import { ColumnId, ColumnWidthProps, ColumnWidthState, TableColumnSizingState, TableState } from './types';
+import {
+  ColumnId,
+  ColumnWidthProps,
+  ColumnWidthState,
+  TableColumnSizingState,
+  TableState,
+  UseColumnSizingParams,
+} from './types';
 import { useColumnResizeState } from './useColumnResizeState';
 import { useFluent } from '../../../react-shared-contexts/src/ProviderContext';
 import useColumnResizeMouseHandler from './useColumnResizeMouseHandler';
@@ -13,10 +20,10 @@ export const defaultColumnSizingState: TableColumnSizingState = {
   getColumnProps: () => ({ style: {}, columnId: '' }),
 };
 
-export function useColumnSizing_unstable<TItem>() {
+export function useColumnSizing_unstable<TItem>(params?: UseColumnSizingParams) {
   // False positive, these plugin hooks are intended to be run on every render
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  return (tableState: TableState<TItem>) => useColumnSizingState(tableState);
+  return (tableState: TableState<TItem>) => useColumnSizingState(tableState, params);
 }
 
 function getColumnProps(column: ColumnWidthState): ColumnWidthProps {
@@ -33,7 +40,7 @@ function getColumnProps(column: ColumnWidthState): ColumnWidthProps {
   };
 }
 
-function useColumnSizingState<TItem>(tableState: TableState<TItem>): TableState<TItem> {
+function useColumnSizingState<TItem>(tableState: TableState<TItem>, params?: UseColumnSizingParams): TableState<TItem> {
   const { columns, tableRef } = tableState;
 
   const { targetDocument } = useFluent();
@@ -42,7 +49,7 @@ function useColumnSizingState<TItem>(tableState: TableState<TItem>): TableState<
   // Gets the container width
   const containerWidth = useMeasureElement(tableRef);
   // Creates the state based on columns and available containerWidth
-  const columnResizeState = useColumnResizeState<TItem>(columns, containerWidth);
+  const columnResizeState = useColumnResizeState<TItem>(columns, containerWidth, params);
   // Creates the mouse handler and attaches the state to it
   const mouseHandler = useColumnResizeMouseHandler(columnResizeState, win);
 

@@ -26,6 +26,7 @@ import * as React from 'react';
 import { useState } from 'react';
 import { PresenceBadgeStatus } from '../../../react-badge/src';
 import { Avatar } from '@fluentui/react-components';
+import { ColumnSizingOptions } from '../../src/hooks';
 
 const columnsDef: ColumnDefinition<Item>[] = [
   createColumn<Item>({
@@ -123,8 +124,62 @@ const items: Item[] = [
     },
   },
 ];
+
 export const ResizingColumns = () => {
   const [columns] = useState<ColumnDefinition<Item>[]>(columnsDef);
+  const [columnSizingOptions, setColumnSizingOptions] = useState<ColumnSizingOptions>({
+    file: {
+      idealWidth: 300,
+      minWidth: 190,
+    },
+    author: {
+      minWidth: 170,
+      defaultWidth: 250,
+    },
+    lastUpdate: {
+      minWidth: 220,
+    },
+  });
+
+  const onWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newWidth = parseInt(e.target.value, 10);
+    if (Number.isNaN(newWidth)) {
+      return;
+    }
+    setColumnSizingOptions({
+      file: {
+        minWidth: 187,
+        idealWidth: newWidth,
+      },
+      author: {
+        minWidth: 170,
+      },
+    });
+  };
+
+  const onMinWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newMinWIdth = parseInt(e.target.value, 10);
+    if (Number.isNaN(newMinWIdth)) {
+      return;
+    }
+    setColumnSizingOptions(state => ({
+      ...state,
+      file: {
+        ...state.file,
+        minWidth: newMinWIdth,
+      },
+    }));
+  };
+
+  const onColumnResize = React.useCallback((columnId: ColumnId, width: number) => {
+    setColumnSizingOptions(state => ({
+      ...state,
+      [columnId]: {
+        ...state[columnId],
+        idealWidth: width,
+      },
+    }));
+  }, []);
 
   const {
     getRows,
@@ -137,7 +192,7 @@ export const ResizingColumns = () => {
       items,
     },
     [
-      useColumnSizing_unstable(),
+      useColumnSizing_unstable({ columnSizingOptions, onColumnResize }),
       useTableSort({ defaultSortState: { sortColumn: 'file', sortDirection: 'ascending' } }),
     ],
   );
@@ -152,42 +207,51 @@ export const ResizingColumns = () => {
   const rows = sort(getRows());
 
   return (
-    <Table sortable aria-label="Table with sort" ref={tableRef} columnSizingState={columnSizing}>
-      <TableHeader>
-        <TableRow>
-          {columns.map((column, index) => (
-            <TableHeaderCell
-              key={column.columnId}
-              {...columnSizing.getColumnProps(column.columnId)}
-              {...headerSortProps(column.columnId)}
-            >
-              {column.renderHeaderCell()}
-            </TableHeaderCell>
-          ))}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {rows.map(({ item }) => (
-          <TableRow key={item.file.label}>
-            <TableCell {...columnSizing.getColumnProps('file')}>
-              <TableCellLayout media={item.file.icon}>{item.file.label}</TableCellLayout>
-            </TableCell>
-            <TableCell {...columnSizing.getColumnProps('author')}>
-              <TableCellLayout
-                media={
-                  <Avatar name={item.author.label} badge={{ status: item.author.status as PresenceBadgeStatus }} />
-                }
+    <>
+      <p>
+        First column width: <input type="text" onChange={onWidthChange} value={columnSizingOptions.file.idealWidth} />
+      </p>
+      <p>
+        First column minWidth:{' '}
+        <input type="text" onChange={onMinWidthChange} value={columnSizingOptions.file.minWidth} />
+      </p>
+      <Table sortable aria-label="Table with sort" ref={tableRef} columnSizingState={columnSizing}>
+        <TableHeader>
+          <TableRow>
+            {columns.map(column => (
+              <TableHeaderCell
+                key={column.columnId}
+                {...columnSizing.getColumnProps(column.columnId)}
+                {...headerSortProps(column.columnId)}
               >
-                {item.author.label}
-              </TableCellLayout>
-            </TableCell>
-            <TableCell {...columnSizing.getColumnProps('lastUpdated')}>{item.lastUpdated.label}</TableCell>
-            <TableCell {...columnSizing.getColumnProps('lastUpdate')}>
-              <TableCellLayout media={item.lastUpdate.icon}>{item.lastUpdate.label}</TableCellLayout>
-            </TableCell>
+                {column.renderHeaderCell()}
+              </TableHeaderCell>
+            ))}
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {rows.map(({ item }) => (
+            <TableRow key={item.file.label}>
+              <TableCell {...columnSizing.getColumnProps('file')}>
+                <TableCellLayout media={item.file.icon}>{item.file.label}</TableCellLayout>
+              </TableCell>
+              <TableCell {...columnSizing.getColumnProps('author')}>
+                <TableCellLayout
+                  media={
+                    <Avatar name={item.author.label} badge={{ status: item.author.status as PresenceBadgeStatus }} />
+                  }
+                >
+                  {item.author.label}
+                </TableCellLayout>
+              </TableCell>
+              <TableCell {...columnSizing.getColumnProps('lastUpdated')}>{item.lastUpdated.label}</TableCell>
+              <TableCell {...columnSizing.getColumnProps('lastUpdate')}>
+                <TableCellLayout media={item.lastUpdate.icon}>{item.lastUpdate.label}</TableCellLayout>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </>
   );
 };

@@ -1,4 +1,4 @@
-import { ColumnDefinition, ColumnWidthState, ColumnId } from '../hooks';
+import { ColumnDefinition, ColumnWidthState, ColumnId, ColumnSizingOptions } from '../hooks';
 
 const DEFAULT_WIDTH = 150;
 const DEFAULT_MIN_WIDTH = 100;
@@ -17,6 +17,7 @@ const DEFAULT_MIN_WIDTH = 100;
 export function columnDefinitionsToState<T>(
   columns: ColumnDefinition<T>[],
   state: ColumnWidthState[] = [],
+  columnSizingOptions: ColumnSizingOptions = {},
 ): ColumnWidthState[] {
   let updated = false;
 
@@ -25,16 +26,40 @@ export function columnDefinitionsToState<T>(
     const existingColumnState = state.find(col => col.columnId === column.columnId);
 
     if (existingColumnState) {
+      const newIdealWidth = columnSizingOptions[column.columnId]?.idealWidth;
+      const newMinWidth = columnSizingOptions[column.columnId]?.minWidth;
+      const newPadding = columnSizingOptions[column.columnId]?.padding;
+      if (
+        (newIdealWidth && newIdealWidth !== existingColumnState.idealWidth) ||
+        (newMinWidth && newMinWidth !== existingColumnState.minWidth) ||
+        (newPadding && newPadding !== existingColumnState.padding)
+      ) {
+        updated = true;
+        return {
+          ...existingColumnState,
+          idealWidth: columnSizingOptions[column.columnId]?.idealWidth ?? existingColumnState.idealWidth,
+          width: columnSizingOptions[column.columnId]?.idealWidth ?? existingColumnState.idealWidth,
+          minWidth: columnSizingOptions[column.columnId]?.minWidth ?? existingColumnState.minWidth,
+          padding: columnSizingOptions[column.columnId]?.padding ?? existingColumnState.padding,
+        };
+      }
+
       return existingColumnState;
     }
 
     updated = true;
     return {
       columnId,
-      width: DEFAULT_MIN_WIDTH,
-      minWidth: DEFAULT_MIN_WIDTH,
-      idealWidth: DEFAULT_WIDTH,
-      padding: 16,
+      width:
+        columnSizingOptions[column.columnId]?.defaultWidth ??
+        columnSizingOptions[column.columnId]?.idealWidth ??
+        DEFAULT_WIDTH,
+      minWidth: columnSizingOptions[column.columnId]?.minWidth ?? DEFAULT_MIN_WIDTH,
+      idealWidth:
+        columnSizingOptions[column.columnId]?.defaultWidth ??
+        columnSizingOptions[column.columnId]?.idealWidth ??
+        DEFAULT_WIDTH,
+      padding: columnSizingOptions[column.columnId]?.padding ?? 16,
     };
   });
 
