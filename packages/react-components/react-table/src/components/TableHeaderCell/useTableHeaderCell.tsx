@@ -1,9 +1,10 @@
 import { useARIAButtonShorthand } from '@fluentui/react-aria';
 import { ArrowDownRegular, ArrowUpRegular } from '@fluentui/react-icons';
-import { getNativeElementProps, resolveShorthand } from '@fluentui/react-utilities';
+import { getNativeElementProps, resolveShorthand, useMergedRefs } from '@fluentui/react-utilities';
 import * as React from 'react';
 import { useTableContext } from '../../contexts/tableContext';
 import type { TableHeaderCellProps, TableHeaderCellState } from './TableHeaderCell.types';
+import { useFocusWithin } from '@fluentui/react-tabster';
 
 const sortIcons = {
   ascending: <ArrowUpRegular fontSize={12} />,
@@ -34,7 +35,7 @@ export const useTableHeaderCell_unstable = (
       aside: 'span',
     },
     root: getNativeElementProps(rootComponent, {
-      ref,
+      ref: useMergedRefs(ref, useFocusWithin()),
       role: rootComponent === 'div' ? 'columnheader' : undefined,
       'aria-sort': sortable ? props.sortDirection ?? 'none' : undefined,
       ...props,

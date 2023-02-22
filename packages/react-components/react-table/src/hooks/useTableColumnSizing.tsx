@@ -77,18 +77,14 @@ function useTableColumnSizingState<TItem>(
         const col = columnResizeState.getColumnById(columnId);
 
         const aside = (
-          <WithTableKeyboardHandler columnResizeState={columnResizeState}>
-            {({ keyboardHandler }) => (
-              <TableResizeHandle
-                onMouseDown={mouseHandler.getOnMouseDown(columnId)}
-                onTouchStart={mouseHandler.getOnMouseDown(columnId)}
-                onKeyDown={keyboardHandler.getOnKeyDown(columnId)}
-                onClick={keyboardHandler.getOnClick(columnId)}
-                onBlur={keyboardHandler.getOnBlur()}
-                value={col ? col.width : 0}
-              />
-            )}
-          </WithTableKeyboardHandler>
+          <TableResizeHandle
+            onMouseDown={mouseHandler.getOnMouseDown(columnId)}
+            onTouchStart={mouseHandler.getOnMouseDown(columnId)}
+            // onKeyDown={keyboardHandler.getOnKeyDown(columnId)}
+            // onClick={keyboardHandler.getOnClick(columnId)}
+            // onBlur={keyboardHandler.getOnBlur()}
+            value={col ? col.width : 0}
+          />
         );
         return col ? { style: getColumnStyles(col), aside } : {};
       },

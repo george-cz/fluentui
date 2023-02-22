@@ -27,10 +27,10 @@ export const useTableResizeHandle_unstable = (
       ref,
       ...props,
       onClick,
-      role: 'button',
-      'aria-label': `Resize Column, ${Math.floor(props.value || 0)} pixels`,
-      'aria-live': 'assertive',
-      tabIndex: 0,
+      // role: 'button',
+      // 'aria-label': `Resize Column, ${Math.floor(props.value || 0)} pixels`,
+      // 'aria-live': 'assertive',
+      // tabIndex: 0,
     }),
   };
 };

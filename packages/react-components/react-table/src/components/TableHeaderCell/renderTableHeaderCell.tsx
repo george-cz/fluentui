@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { getSlots } from '@fluentui/react-utilities';
-import type { TableHeaderCellState, TableHeaderCellSlots } from './TableHeaderCell.types';
+import { TableHeaderCellState, TableHeaderCellSlots } from './TableHeaderCell.types';
 
 /**
  * Render the final JSX of TableHeaderCell

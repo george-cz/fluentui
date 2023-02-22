@@ -27,14 +27,14 @@ const useStyles = makeStyles({
     transitionDuration: '.2s',
     zIndex: 1,
 
-    ...createCustomFocusIndicatorStyle(
-      {
-        ...shorthands.outline('2px', 'solid', tokens.colorStrokeFocus2),
-        ...shorthands.borderRadius(tokens.borderRadiusMedium),
-        opacity: 1,
-      },
-      { selector: 'focus', enableOutline: true },
-    ),
+    // ...createCustomFocusIndicatorStyle(
+    //   {
+    //     ...shorthands.outline('2px', 'solid', tokens.colorStrokeFocus2),
+    //     ...shorthands.borderRadius(tokens.borderRadiusMedium),
+    //     opacity: 1,
+    //   },
+    //   { selector: 'focus', enableOutline: true },
+    // ),
 
     ':hover': {
       opacity: 1,
