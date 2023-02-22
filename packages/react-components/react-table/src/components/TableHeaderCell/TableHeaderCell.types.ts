@@ -1,6 +1,8 @@
 import type { ComponentProps, ComponentState, Slot } from '@fluentui/react-utilities';
 import { ARIAButtonSlotProps } from '@fluentui/react-aria';
 import { SortDirection, TableContextValue } from '../Table/Table.types';
+import { MenuList } from '@fluentui/react-menu';
+import { TableColumnId } from '../../hooks/types';
 
 export type TableHeaderCellSlots = {
   root: Slot<'th', 'div'>;
@@ -15,6 +17,11 @@ export type TableHeaderCellSlots = {
    * aside content for anything that should be after main content of the table header cell
    */
   aside: Slot<'span'>;
+
+  /**
+   * Accessibility menu for keyboard navigation
+   */
+  accessibilityMenu: Slot<typeof MenuList>;
 };
 
 /**
@@ -25,10 +32,17 @@ export type TableHeaderCellProps = ComponentProps<Partial<TableHeaderCellSlots>>
    * @default undefined
    */
   sortDirection?: SortDirection;
+
+  columnId?: TableColumnId;
+};
+
+export type TableHeaderCellContextValue = {
+  columnId?: TableColumnId;
 };
 
 /**
  * State used in rendering TableHeaderCell
  */
 export type TableHeaderCellState = ComponentState<TableHeaderCellSlots> &
-  Pick<TableContextValue, 'noNativeElements' | 'sortable'>;
+  Pick<TableContextValue, 'noNativeElements' | 'sortable'> &
+  TableHeaderCellContextValue;

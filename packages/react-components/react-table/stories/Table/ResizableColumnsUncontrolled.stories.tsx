@@ -128,7 +128,7 @@ export const ResizableColumnsUncontrolled = () => {
   });
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  const { getRows, columnSizing_unstable, tableRef } = useTableFeatures(
+  const { getRows, columnSizing_unstable, tableRef, accessibilityMenuOptions } = useTableFeatures(
     {
       columns,
       items,
@@ -153,7 +153,7 @@ export const ResizableColumnsUncontrolled = () => {
         First column width:{' '}
         <Input type="number" onChange={onWidthChange} value={inputValue ? inputValue.toString() : ''} />
       </p>
-      <Table sortable aria-label="Table with sort" ref={tableRef}>
+      <Table sortable aria-label="Table with sort" ref={tableRef} accessibilityMenuOptions={accessibilityMenuOptions}>
         <TableHeader>
           <TableRow>
             {columns.map(column => (

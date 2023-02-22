@@ -142,6 +142,8 @@ export interface TableFeaturesState<TItem> extends Pick<UseTableFeaturesOptions<
    * Used with column resizing.
    */
   tableRef: React.Ref<HTMLDivElement>;
+
+  accessibilityMenuOptions: React.ReactElement[];
 }
 
 export interface UseTableSortOptions {
@@ -194,7 +196,7 @@ export interface ColumnWidthState {
   padding: number;
 }
 
-export type ColumnSizingTableHeaderCellProps = Pick<TableHeaderCellProps, 'style' | 'aside'>;
+export type ColumnSizingTableHeaderCellProps = Pick<TableHeaderCellProps, 'style' | 'aside' | 'columnId'>;
 export type ColumnSizingTableCellProps = Pick<TableHeaderCellProps, 'style'>;
 
 export interface TableColumnSizingState {

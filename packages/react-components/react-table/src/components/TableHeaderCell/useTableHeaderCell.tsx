@@ -5,6 +5,7 @@ import * as React from 'react';
 import { useTableContext } from '../../contexts/tableContext';
 import type { TableHeaderCellProps, TableHeaderCellState } from './TableHeaderCell.types';
 import { useFocusWithin } from '@fluentui/react-tabster';
+import { MenuList } from '@fluentui/react-menu';
 
 const sortIcons = {
   ascending: <ArrowUpRegular fontSize={12} />,
@@ -24,7 +25,7 @@ export const useTableHeaderCell_unstable = (
   props: TableHeaderCellProps,
   ref: React.Ref<HTMLElement>,
 ): TableHeaderCellState => {
-  const { noNativeElements, sortable } = useTableContext();
+  const { noNativeElements, sortable, accessibilityMenuOptions } = useTableContext();
 
   const rootComponent = props.as ?? noNativeElements ? 'div' : 'th';
   return {
@@ -33,6 +34,7 @@ export const useTableHeaderCell_unstable = (
       button: 'button',
       sortIcon: 'span',
       aside: 'span',
+      accessibilityMenu: MenuList,
     },
     root: getNativeElementProps(rootComponent, {
       ref: useMergedRefs(ref, useFocusWithin()),
@@ -57,7 +59,11 @@ export const useTableHeaderCell_unstable = (
         }),
       },
     }),
+    accessibilityMenu: {
+      children: accessibilityMenuOptions,
+    },
     sortable,
     noNativeElements,
+    columnId: props.columnId,
   };
 };

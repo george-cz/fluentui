@@ -1,4 +1,5 @@
 import type { ComponentProps, ComponentState, Slot } from '@fluentui/react-utilities';
+import * as React from 'react';
 
 export type TableSlots = {
   root: Slot<'table', 'div'>;
@@ -23,6 +24,8 @@ export type TableContextValue = {
    * @default false
    */
   sortable: boolean;
+
+  accessibilityMenuOptions?: React.ReactElement[];
 };
 
 export type SortDirection = 'ascending' | 'descending';

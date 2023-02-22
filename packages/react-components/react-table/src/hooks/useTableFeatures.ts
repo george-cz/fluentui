@@ -45,6 +45,7 @@ export function useTableFeatures<TItem>(
     // eslint-disable-next-line @typescript-eslint/naming-convention
     columnSizing_unstable: defaultColumnSizingState,
     tableRef: React.createRef(),
+    accessibilityMenuOptions: [],
   };
 
   return plugins.reduce((state, plugin) => plugin(state), initialState);
