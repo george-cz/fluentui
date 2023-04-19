@@ -5,6 +5,8 @@ import { ArrowUpRegular, ArrowDownRegular } from '@fluentui/react-icons';
 import type { TableHeaderCellProps, TableHeaderCellState } from './TableHeaderCell.types';
 import { useTableContext } from '../../contexts/tableContext';
 import { useARIAButtonShorthand } from '@fluentui/react-aria';
+import { CSS } from '@dnd-kit/utilities';
+import { useSortable } from '@dnd-kit/sortable';
 
 const sortIcons = {
   ascending: <ArrowUpRegular fontSize={12} />,
@@ -27,6 +29,16 @@ export const useTableHeaderCell_unstable = (
   const { noNativeElements, sortable } = useTableContext();
 
   const rootComponent = props.as ?? noNativeElements ? 'div' : 'th';
+
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+    id: props.columnId || '__unknown',
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   return {
     components: {
       root: rootComponent,
@@ -34,12 +46,17 @@ export const useTableHeaderCell_unstable = (
       sortIcon: 'span',
       aside: 'span',
     },
-    root: getNativeElementProps(rootComponent, {
-      ref: useMergedRefs(ref, useFocusWithin()),
-      role: rootComponent === 'div' ? 'columnheader' : undefined,
-      'aria-sort': sortable ? props.sortDirection ?? 'none' : undefined,
-      ...props,
-    }),
+    root: {
+      ...getNativeElementProps(rootComponent, {
+        ref: useMergedRefs(ref, useFocusWithin(), setNodeRef),
+        role: rootComponent === 'div' ? 'columnheader' : undefined,
+        'aria-sort': sortable ? props.sortDirection ?? 'none' : undefined,
+        ...props,
+      }),
+      ...attributes,
+      ...listeners,
+      style,
+    },
     aside: resolveShorthand(props.aside),
     sortIcon: resolveShorthand(props.sortIcon, {
       required: !!props.sortDirection,

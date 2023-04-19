@@ -1,7 +1,9 @@
 import * as React from 'react';
-import { getNativeElementProps } from '@fluentui/react-utilities';
+import { getNativeElementProps, useMergedRefs } from '@fluentui/react-utilities';
 import type { TableCellProps, TableCellState } from './TableCell.types';
 import { useTableContext } from '../../contexts/tableContext';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 /**
  * Create the state required to render TableCell.
@@ -17,14 +19,26 @@ export const useTableCell_unstable = (props: TableCellProps, ref: React.Ref<HTML
 
   const rootComponent = props.as ?? noNativeElements ? 'div' : 'td';
 
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+    id: props.columnId || '__unknown',
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   return {
     components: {
       root: rootComponent,
     },
     root: getNativeElementProps(rootComponent, {
-      ref,
+      ref: useMergedRefs(ref, setNodeRef),
       role: rootComponent === 'div' ? 'cell' : undefined,
       ...props,
+      // ...attributes,
+      // ...listeners,
+      style,
     }),
     noNativeElements,
     size,

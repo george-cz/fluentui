@@ -156,7 +156,7 @@ export const ReorderColumns = () => {
     <>
       <Checkbox label="Preview dragging" checked={dndPreview} onChange={(_, data) => setDndPreview(!!data.checked)} />
 
-      <Table sortable aria-label="Table with sort" ref={tableRef}>
+      <Table sortable aria-label="Table with sort" ref={tableRef} {...columnReordering_unstable.getTableProps()}>
         <TableHeader>
           <TableRow>
             {columns.map(column => (
@@ -173,7 +173,12 @@ export const ReorderColumns = () => {
           {rows.map(({ item }) => (
             <TableRow key={item.file.label}>
               {columns.map(column => (
-                <TableCell key={column.columnId}>{column.renderCell(item)}</TableCell>
+                <TableCell
+                  key={column.columnId}
+                  {...columnReordering_unstable.getTableHeaderCellProps(column.columnId)}
+                >
+                  {column.renderCell(item)}
+                </TableCell>
               ))}
             </TableRow>
           ))}

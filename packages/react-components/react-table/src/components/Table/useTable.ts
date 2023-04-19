@@ -26,5 +26,7 @@ export const useTable_unstable = (props: TableProps, ref: React.Ref<HTMLElement>
     size: props.size ?? 'medium',
     noNativeElements: props.noNativeElements ?? false,
     sortable: props.sortable ?? false,
+    onColumnDragEnd: props.onColumnDragEnd,
+    columns: props.columns,
   };
 };

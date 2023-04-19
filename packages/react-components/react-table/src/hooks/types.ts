@@ -1,5 +1,6 @@
+import { DragEndEvent } from '@dnd-kit/core';
 import * as React from 'react';
-import { SortDirection } from '../components/Table/Table.types';
+import { SortDirection, TableProps } from '../components/Table/Table.types';
 import { TableHeaderCellProps } from '../components/TableHeaderCell/TableHeaderCell.types';
 
 export type TableRowId = string | number;
@@ -218,8 +219,14 @@ export interface TableColumnSizingState {
 
 export type ColumnReorderingTableHeaderCellProps = TableHeaderCellProps;
 
+export type ColumnReorderingTableProps = {
+  onColumnDragEnd?: (event: DragEndEvent) => void;
+  columns?: Array<string | number>;
+};
+
 export interface TableColumnReorderingState {
   getTableHeaderCellProps: (columnId: TableColumnId) => ColumnReorderingTableHeaderCellProps;
+  getTableProps: () => ColumnReorderingTableProps;
 }
 
 export type UseTableColumnReorderingParams<TItem> = {

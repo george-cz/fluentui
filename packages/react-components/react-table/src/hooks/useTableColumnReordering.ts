@@ -1,8 +1,11 @@
+import { DragEndEvent } from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
+import * as React from 'react';
 import { TableColumnId, TableColumnReorderingState, TableFeaturesState, UseTableColumnReorderingParams } from './types';
-import { useTableColumnReorderingDNDState } from './useTableColumnReorderingDNDState';
 
 export const defaultColumnReorderingState: TableColumnReorderingState = {
   getTableHeaderCellProps: () => ({}),
+  getTableProps: () => ({}),
 };
 
 export function useTableColumnReordering_unstable<TItem>(params: UseTableColumnReorderingParams<TItem>) {
@@ -15,19 +18,33 @@ function useTableColumnReorderingState<TItem>(
   tableState: TableFeaturesState<TItem>,
   params: UseTableColumnReorderingParams<TItem>,
 ): TableFeaturesState<TItem> {
-  const state = useTableColumnReorderingDNDState(tableState.columns, params.onColumnOrderChange, params.preview);
+  // const state = useTableColumnReorderingDNDState(tableState.columns, params.onColumnOrderChange, params.preview);
+  const [localColumns, setLocalColumns] = React.useState(tableState.columns);
+
+  function onDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setLocalColumns(columns => {
+        const oldIndex = columns.findIndex(col => col.columnId === active.id);
+        const newIndex = columns.findIndex(col => col.columnId === over.id);
+
+        return arrayMove(columns, oldIndex, newIndex);
+      });
+    }
+  }
 
   return {
     ...tableState,
-    columns: state.columns,
+    columns: localColumns,
     // eslint-disable-next-line @typescript-eslint/naming-convention
     columnReordering_unstable: {
       getTableHeaderCellProps: (columnId: TableColumnId) => ({
-        draggable: true,
-        onDragStart: state.onDragStart(columnId),
-        onDrop: state.onDrop(columnId),
-        onDragEnter: state.onDragEnter(columnId),
-        onDragOver: state.onDragOver(columnId),
+        columnId,
+      }),
+      getTableProps: () => ({
+        columns: localColumns.map(column => column.columnId),
+        onColumnDragEnd: onDragEnd,
       }),
     },
   };

@@ -8,7 +8,9 @@ export type TableCellSlots = {
 /**
  * TableCell Props
  */
-export type TableCellProps = ComponentProps<TableCellSlots> & {};
+export type TableCellProps = ComponentProps<TableCellSlots> & {
+  columnId?: string;
+};
 
 /**
  * State used in rendering TableCell

@@ -1,4 +1,6 @@
+import { SortableContextProps } from '@dnd-kit/sortable';
 import type { ComponentProps, ComponentState, Slot } from '@fluentui/react-utilities';
+import { ColumnReorderingTableProps } from '../../hooks/types';
 
 export type TableSlots = {
   root: Slot<'table', 'div'>;
@@ -29,16 +31,19 @@ export type SortDirection = 'ascending' | 'descending';
 
 export type TableContextValues = {
   table: TableContextValue;
+  dndContext: {};
+  sortableContext: Partial<SortableContextProps>;
 };
 
 /**
  * Table Props
  */
-export type TableProps = ComponentProps<TableSlots> & Partial<TableContextValue>;
+export type TableProps = ComponentProps<TableSlots> & Partial<TableContextValue> & Partial<ColumnReorderingTableProps>;
 
 /**
  * State used in rendering Table
  */
 export type TableState = ComponentState<TableSlots> &
   Pick<Required<TableProps>, 'size' | 'noNativeElements'> &
+  Partial<Pick<TableProps, 'onColumnDragEnd' | 'columns'>> &
   TableContextValue;
