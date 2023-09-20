@@ -7,6 +7,7 @@ import { tokens } from '@fluentui/react-theme';
 export const listItemClassNames: SlotClassNames<ListItemSlots> = {
   root: 'fui-ListItem',
   button: 'fui-ListItem__button',
+  checkbox: 'fui-ListItem__checkbox',
 };
 
 /**
@@ -22,6 +23,11 @@ const useStyles = makeStyles({
       { selector: 'focus' },
     ),
   },
+
+  rootSelectable: {
+    display: 'flex',
+  },
+
   button: {
     display: 'block',
     width: '100%',
@@ -35,10 +41,19 @@ const useStyles = makeStyles({
  */
 export const useListItemStyles_unstable = (state: ListItemState): ListItemState => {
   const styles = useStyles();
-  state.root.className = mergeClasses(listItemClassNames.root, styles.root, state.root.className);
+  state.root.className = mergeClasses(
+    listItemClassNames.root,
+    styles.root,
+    state.selectable && styles.rootSelectable,
+    state.root.className,
+  );
 
   if (state.button) {
     state.button.className = mergeClasses(listItemClassNames.button, styles.button, state.button?.className);
+  }
+
+  if (state.checkbox) {
+    state.checkbox.className = mergeClasses(listItemClassNames.checkbox, state.checkbox?.className);
   }
 
   return state;

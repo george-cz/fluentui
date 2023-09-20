@@ -9,6 +9,7 @@ export { ListGrid } from './ListGrid.stories';
 export { ListArrowNavigation } from './ListArrowNavigation.stories';
 export { ListOverflowing } from './ListOverflowing.stories';
 export { ListSelection } from './ListSelection.stories';
+export { ListSelectionInternal } from './ListSelectionInternal.stories';
 export { ListWithMultipleActions } from './ListWithMultipleActions.stories';
 export { VirtualizedList } from './VirtualizedList.stories';
 

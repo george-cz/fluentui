@@ -13,6 +13,9 @@ export const renderListItem_unstable = (state: ListItemState) => {
 
   // TODO Add additional slots in the appropriate place
   return (
-    <state.root>{state.button ? <state.button>{state.root.children}</state.button> : state.root.children}</state.root>
+    <state.root>
+      {state.checkbox ? <state.checkbox /> : null}
+      {state.button ? <state.button>{state.root.children}</state.button> : state.root.children}
+    </state.root>
   );
 };
