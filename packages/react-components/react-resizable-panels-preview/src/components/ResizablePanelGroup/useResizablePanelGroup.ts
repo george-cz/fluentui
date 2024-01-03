@@ -15,7 +15,12 @@ export const useResizablePanelGroup_unstable = (
   props: ResizablePanelGroupProps,
   ref: React.Ref<HTMLDivElement>,
 ): ResizablePanelGroupState => {
+  const { layout = 'horizontal' } = props;
+
+  const resizeState = { foo: () => console.log('foo') };
+
   return {
+    layout,
     // TODO add appropriate props/defaults
     components: {
       // TODO add each slot's element type or component
@@ -30,5 +35,7 @@ export const useResizablePanelGroup_unstable = (
       }),
       { elementType: 'div' },
     ),
+
+    resizeState,
   };
 };

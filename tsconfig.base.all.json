@@ -174,6 +174,9 @@
       "@fluentui/react-breadcrumb": ["packages/react-components/react-breadcrumb/src/index.ts"],
       "@fluentui/react-teaching-popover-preview": [
         "packages/react-components/react-teaching-popover-preview/src/index.ts"
+      ],
+      "@fluentui/react-resizable-panels-preview": [
+        "packages/react-components/react-resizable-panels-preview/src/index.ts"
       ]
     }
   }

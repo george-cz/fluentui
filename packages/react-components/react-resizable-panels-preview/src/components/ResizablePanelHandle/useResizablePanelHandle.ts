@@ -28,7 +28,7 @@ export const useResizablePanelHandle_unstable = (
         ref,
         ...props,
       }),
-      { elementType: 'div' },
+      { elementType: 'div', defaultProps: { children: 'xxx' } },
     ),
   };
 };

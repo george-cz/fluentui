@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { getIntrinsicElementProps, slot } from '@fluentui/react-utilities';
 import type { ResizablePanelProps, ResizablePanelState } from './ResizablePanel.types';
+import { useResizablePanelGroupContext } from '../../context/resizablePanelsContext';
 
 /**
  * Create the state required to render ResizablePanel.
@@ -15,6 +16,9 @@ export const useResizablePanel_unstable = (
   props: ResizablePanelProps,
   ref: React.Ref<HTMLDivElement>,
 ): ResizablePanelState => {
+  const { resizeState } = useResizablePanelGroupContext();
+  resizeState.foo();
+
   return {
     // TODO add appropriate props/defaults
     components: {
