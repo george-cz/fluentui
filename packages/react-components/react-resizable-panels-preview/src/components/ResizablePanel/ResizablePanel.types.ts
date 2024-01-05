@@ -7,11 +7,9 @@ export type ResizablePanelSlots = {
 /**
  * ResizablePanel Props
  */
-export type ResizablePanelProps = ComponentProps<ResizablePanelSlots> & {};
+export type ResizablePanelProps = ComponentProps<ResizablePanelSlots> & { panelIndex: number };
 
 /**
  * State used in rendering ResizablePanel
  */
 export type ResizablePanelState = ComponentState<ResizablePanelSlots>;
-// TODO: Remove semicolon from previous line, uncomment next line, and provide union of props to pick from ResizablePanelProps.
-// & Required<Pick<ResizablePanelProps, 'propName'>>

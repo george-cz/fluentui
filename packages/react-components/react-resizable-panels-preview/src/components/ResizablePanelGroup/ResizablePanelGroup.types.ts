@@ -1,4 +1,6 @@
+import * as React from 'react';
 import type { ComponentProps, ComponentState, Slot } from '@fluentui/react-utilities';
+import { ResizablePanelProps } from '../ResizablePanel/ResizablePanel.types';
 
 export type ResizablePanelGroupSlots = {
   root: Slot<'div'>;
@@ -9,12 +11,18 @@ export type ResizablePanelGroupSlots = {
  */
 export type ResizablePanelGroupProps = ComponentProps<ResizablePanelGroupSlots> & {
   layout?: 'horizontal' | 'vertical';
+  state?: ResizablePanelGroupSharedState;
+};
+
+export type ResizablePanelGroupSharedState = {
+  getPanelProps: (panelIndex: number, props?: ResizablePanelProps) => ResizablePanelProps;
+  getOnMouseDown: () => (e: React.MouseEvent) => void;
+  containerRef: React.RefObject<HTMLDivElement>;
+  handleRef: React.RefObject<HTMLDivElement>;
 };
 
 export type ResizablePanelGroupContextValue = {
-  resizeState: {
-    foo: () => void;
-  };
+  resizeState: ResizablePanelGroupSharedState;
 };
 
 export type ResizablePanelGroupContextValues = {

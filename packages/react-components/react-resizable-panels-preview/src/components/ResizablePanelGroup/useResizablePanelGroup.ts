@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { getIntrinsicElementProps, slot } from '@fluentui/react-utilities';
+import { getIntrinsicElementProps, slot, useMergedRefs } from '@fluentui/react-utilities';
 import type { ResizablePanelGroupProps, ResizablePanelGroupState } from './ResizablePanelGroup.types';
+import { useResizablePanelGroupSharedState } from '../../hooks/useResizablePanelGroupSharedState';
 
 /**
  * Create the state required to render ResizablePanelGroup.
@@ -17,20 +18,17 @@ export const useResizablePanelGroup_unstable = (
 ): ResizablePanelGroupState => {
   const { layout = 'horizontal' } = props;
 
-  const resizeState = { foo: () => console.log('foo') };
+  const resizeStateInternal = useResizablePanelGroupSharedState();
+  const resizeState = props.state ?? resizeStateInternal;
 
   return {
     layout,
-    // TODO add appropriate props/defaults
     components: {
-      // TODO add each slot's element type or component
       root: 'div',
     },
-    // TODO add appropriate slots, for example:
-    // mySlot: resolveShorthand(props.mySlot),
     root: slot.always(
       getIntrinsicElementProps('div', {
-        ref,
+        ref: useMergedRefs(ref, resizeState.containerRef),
         ...props,
       }),
       { elementType: 'div' },

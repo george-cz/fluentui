@@ -4,6 +4,7 @@ import descriptionMd from './ResizablePanelGroupDescription.md';
 import bestPracticesMd from './ResizablePanelGroupBestPractices.md';
 
 export { Default } from './ResizablePanelGroupDefault.stories';
+export { UseHook } from './UseHook.stories';
 
 export default {
   title: 'Preview Components/ResizablePanelGroup',

@@ -30,3 +30,4 @@ export type {
   ResizablePanelHandleSlots,
   ResizablePanelHandleState,
 } from './ResizablePanelHandle';
+export { useResizablePanelGroupSharedState } from './hooks/useResizablePanelGroupSharedState';

@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { getIntrinsicElementProps, slot } from '@fluentui/react-utilities';
+import { getIntrinsicElementProps, slot, useMergedRefs } from '@fluentui/react-utilities';
 import type { ResizablePanelHandleProps, ResizablePanelHandleState } from './ResizablePanelHandle.types';
+import { useResizablePanelGroupContext } from '../../context/resizablePanelsContext';
 
 /**
  * Create the state required to render ResizablePanelHandle.
@@ -15,6 +16,8 @@ export const useResizablePanelHandle_unstable = (
   props: ResizablePanelHandleProps,
   ref: React.Ref<HTMLDivElement>,
 ): ResizablePanelHandleState => {
+  const { resizeState } = useResizablePanelGroupContext();
+
   return {
     // TODO add appropriate props/defaults
     components: {
@@ -25,10 +28,11 @@ export const useResizablePanelHandle_unstable = (
     // mySlot: resolveShorthand(props.mySlot),
     root: slot.always(
       getIntrinsicElementProps('div', {
-        ref,
+        ref: useMergedRefs(ref, resizeState.handleRef),
         ...props,
+        onMouseDown: resizeState.getOnMouseDown(),
       }),
-      { elementType: 'div', defaultProps: { children: 'xxx' } },
+      { elementType: 'div', defaultProps: { children: '__|__' } },
     ),
   };
 };

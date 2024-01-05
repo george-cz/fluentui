@@ -9,7 +9,5 @@ import type { ResizablePanelState, ResizablePanelSlots } from './ResizablePanel.
  */
 export const renderResizablePanel_unstable = (state: ResizablePanelState) => {
   assertSlots<ResizablePanelSlots>(state);
-
-  // TODO Add additional slots in the appropriate place
   return <state.root />;
 };

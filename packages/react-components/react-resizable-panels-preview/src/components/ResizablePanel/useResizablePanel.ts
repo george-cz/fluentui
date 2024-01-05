@@ -17,20 +17,16 @@ export const useResizablePanel_unstable = (
   ref: React.Ref<HTMLDivElement>,
 ): ResizablePanelState => {
   const { resizeState } = useResizablePanelGroupContext();
-  resizeState.foo();
 
   return {
-    // TODO add appropriate props/defaults
     components: {
-      // TODO add each slot's element type or component
       root: 'div',
     },
-    // TODO add appropriate slots, for example:
-    // mySlot: resolveShorthand(props.mySlot),
     root: slot.always(
       getIntrinsicElementProps('div', {
         ref,
         ...props,
+        ...resizeState.getPanelProps(props.panelIndex, props),
       }),
       { elementType: 'div' },
     ),
