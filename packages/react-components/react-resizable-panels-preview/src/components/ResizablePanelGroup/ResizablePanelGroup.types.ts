@@ -15,10 +15,10 @@ export type ResizablePanelGroupProps = ComponentProps<ResizablePanelGroupSlots> 
 };
 
 export type ResizablePanelGroupSharedState = {
-  getPanelProps: (panelIndex: number, props?: ResizablePanelProps) => ResizablePanelProps;
-  getOnMouseDown: () => (e: React.MouseEvent) => void;
-  containerRef: React.RefObject<HTMLDivElement>;
-  handleRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.Ref<HTMLDivElement>;
+  handleRef: React.Ref<HTMLDivElement>;
+  firstPanelRef: React.Ref<HTMLDivElement>;
+  secondPanelRef: React.Ref<HTMLDivElement>;
 };
 
 export type ResizablePanelGroupContextValue = {

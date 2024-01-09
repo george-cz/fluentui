@@ -30,7 +30,6 @@ export const useResizablePanelHandle_unstable = (
       getIntrinsicElementProps('div', {
         ref: useMergedRefs(ref, resizeState.handleRef),
         ...props,
-        onMouseDown: resizeState.getOnMouseDown(),
       }),
       { elementType: 'div', defaultProps: { children: '__|__' } },
     ),

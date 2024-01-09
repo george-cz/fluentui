@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { getIntrinsicElementProps, slot } from '@fluentui/react-utilities';
+import { getIntrinsicElementProps, slot, useMergedRefs } from '@fluentui/react-utilities';
 import type { ResizablePanelProps, ResizablePanelState } from './ResizablePanel.types';
 import { useResizablePanelGroupContext } from '../../context/resizablePanelsContext';
 
@@ -24,9 +24,8 @@ export const useResizablePanel_unstable = (
     },
     root: slot.always(
       getIntrinsicElementProps('div', {
-        ref,
+        ref: useMergedRefs(ref, props.panelIndex === 0 ? resizeState.firstPanelRef : resizeState.secondPanelRef),
         ...props,
-        ...resizeState.getPanelProps(props.panelIndex, props),
       }),
       { elementType: 'div' },
     ),

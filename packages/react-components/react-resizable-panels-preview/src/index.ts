@@ -31,3 +31,4 @@ export type {
   ResizablePanelHandleState,
 } from './ResizablePanelHandle';
 export { useResizablePanelGroupSharedState } from './hooks/useResizablePanelGroupSharedState';
+export { useResizingHandle } from './hooks/useResizingHandle';

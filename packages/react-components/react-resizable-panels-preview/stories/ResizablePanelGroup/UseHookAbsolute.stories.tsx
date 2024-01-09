@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { useResizablePanelGroupSharedState } from '@fluentui/react-resizable-panels-preview';
+import {
+  ResizablePanelGroup,
+  ResizablePanelHandle,
+  useResizablePanelGroupSharedState,
+} from '@fluentui/react-resizable-panels-preview';
 import { makeStyles, mergeClasses } from '@fluentui/react-components';
 
 const useStyles = makeStyles({
@@ -26,9 +30,9 @@ const LeftPanelComponent = () => {
   );
 };
 
-export const UseHook = () => {
+export const UseHookAbsolute = () => {
   const styles = useStyles();
-  const resizeState = useResizablePanelGroupSharedState({ defaultSizes: ['150px', 70], constraints: [5, 85] });
+  const resizeState = useResizablePanelGroupSharedState({ defaultSizes: [30, 70], constraints: [5, 85] });
   const [count, setCount] = React.useState(0);
 
   return (
@@ -38,11 +42,11 @@ export const UseHook = () => {
         <button onClick={() => setCount(c => c + 1)}>Add</button>
       </div>
       <div className={styles.container} ref={resizeState.containerRef}>
-        <div className={mergeClasses(styles.panel, styles.panel1)} ref={resizeState.firstPanelRef}>
+        <div className={mergeClasses(styles.panel, styles.panel1)} ref={resizeState.secondPanelRef}>
           <LeftPanelComponent />
         </div>
         <div ref={resizeState.handleRef}>&lt;|&gt;</div>
-        <div className={styles.panel} ref={resizeState.secondPanelRef}>
+        <div className={styles.panel} ref={resizeState.firstPanelRef}>
           Right Panel
         </div>
       </div>
