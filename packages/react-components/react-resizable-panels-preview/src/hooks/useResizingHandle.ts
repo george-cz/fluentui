@@ -33,7 +33,6 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
   const elementRef = React.useRef<HTMLElement | null>(null);
 
   const currentValue = React.useRef(initialValue);
-  const [nextInitialValue, setNextInitialValue] = React.useState(initialValue);
 
   const flushUpdatesToDOM = React.useCallback(() => {
     wrapperRef.current?.style.setProperty(variableName, `${currentValue.current}px`);
@@ -50,37 +49,18 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
     });
   }, [getValueText, maxValue, minValue, variableName]);
 
-  const handleMouseInteractionFinished = React.useCallback(() => {
-    // Measure the final element size, if its different than the current value, that means the element size
-    // is controlled by another aspect than just straight up pixel value (could be minmax, clamp, max, min css functions
-    // etc. If this is the case, commit the actual element size to the value, so that next time the handle is dragged,
-    // it will start from the correct position.
-    const elementSize = elementRef.current?.getBoundingClientRect();
-    if (elementSize && currentValue.current !== elementSize.width) {
-      currentValue.current = elementSize.width;
-      setNextInitialValue(elementSize.width);
-    } else {
-      setNextInitialValue(currentValue.current);
-    }
-
-    flushUpdatesToDOM();
-  }, [flushUpdatesToDOM]);
-
   // In case the maxValue or minValue is changed, we need to make sure we are not exceeding the new limits
   React.useEffect(() => {
     const newValue = limitValue(currentValue.current, minValue, maxValue);
     if (newValue !== currentValue.current) {
       currentValue.current = newValue;
-      setNextInitialValue(newValue);
       flushUpdatesToDOM();
     }
   }, [maxValue, minValue, flushUpdatesToDOM]);
 
   const setValue = React.useCallback(
     (value: number) => {
-      const limitedValue = limitValue(value, minValue, maxValue);
-      currentValue.current = limitedValue;
-      setNextInitialValue(limitedValue);
+      currentValue.current = limitValue(value, minValue, maxValue);
       flushUpdatesToDOM();
     },
     [minValue, maxValue, flushUpdatesToDOM],
@@ -97,13 +77,12 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
   const { attachHandlers: attachMouseHandlers } = useMouseHandler({
     elementRef,
     growDirection,
-    initialValue: nextInitialValue,
     onValueChange: handleMouseValueChanged,
-    onMoveEnd: handleMouseInteractionFinished,
   });
 
   const { attachHandlers: attachKeyboardHandlers } = useKeyboardHandler({
-    value: currentValue.current,
+    elementRef,
+    growDirection,
     onValueChange: setValue,
   });
 

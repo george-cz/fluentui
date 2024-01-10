@@ -1,22 +1,54 @@
+import { getKey } from '@fluentui/accessibility';
 import { useEventCallback } from '@fluentui/react-utilities';
 import * as React from 'react';
-import { getCode, keyboardKey } from '@fluentui/accessibility';
 
 export type UseKeyboardHandlerOptions = {
-  value: number;
   onValueChange: (value: number) => void;
+  elementRef: React.RefObject<HTMLElement>;
+  growDirection: 'right' | 'left' | 'top' | 'bottom';
+};
+
+function add(a: number, b: number) {
+  return a + b;
+}
+
+function subtract(a: number, b: number) {
+  return a - b;
+}
+
+const operations: Record<string, Record<string, Function | undefined> | undefined> = {
+  right: {
+    ArrowRight: add,
+    ArrowLeft: subtract,
+  },
+  left: {
+    ArrowRight: subtract,
+    ArrowLeft: add,
+  },
+  top: {
+    ArrowUp: add,
+    ArrowDown: subtract,
+  },
+  bottom: {
+    ArrowUp: subtract,
+    ArrowDown: add,
+  },
 };
 
 export const useKeyboardHandler = (options: UseKeyboardHandlerOptions) => {
-  const { value, onValueChange } = options;
+  const { elementRef, onValueChange, growDirection } = options;
 
   const onKeyDown = useEventCallback((event: KeyboardEvent) => {
-    if (getCode(event) === keyboardKey.ArrowRight) {
-      onValueChange(value + 20);
+    const key = growDirection === 'right' || growDirection === 'left' ? 'width' : 'height';
+
+    let newValue = elementRef.current?.getBoundingClientRect()[key] || 0;
+
+    const eventKey = getKey(event);
+    if (eventKey) {
+      newValue = operations[growDirection]?.[eventKey]?.(newValue, 20) ?? newValue;
     }
-    if (getCode(event) === keyboardKey.ArrowLeft) {
-      onValueChange(value - 20);
-    }
+
+    onValueChange(Math.round(newValue));
   });
 
   const attachHandlers = React.useCallback(

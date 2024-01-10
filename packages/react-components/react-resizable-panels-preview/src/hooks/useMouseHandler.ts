@@ -6,11 +6,9 @@ import * as React from 'react';
 export type UseMouseHandlerParams = {
   onDown?: (event: NativeTouchOrMouseEvent) => void;
   onMove?: (event: NativeTouchOrMouseEvent) => void;
-  onMoveEnd?: (event: NativeTouchOrMouseEvent) => void;
   growDirection: 'right' | 'left' | 'top' | 'bottom';
-  initialValue: number;
   onValueChange: (value: number) => void;
-  elementRef?: React.RefObject<HTMLElement>;
+  elementRef: React.RefObject<HTMLElement>;
 };
 
 export function useMouseHandler(params: UseMouseHandlerParams) {
@@ -18,25 +16,41 @@ export function useMouseHandler(params: UseMouseHandlerParams) {
   const globalWin = targetDocument?.defaultView;
 
   const startCoords = React.useRef({ clientX: 0, clientY: 0 });
-  const { growDirection, initialValue, onValueChange, elementRef } = params;
+  const { growDirection, onValueChange, elementRef } = params;
+
+  const key = growDirection === 'right' || growDirection === 'left' ? 'width' : 'height';
+  const initialValue = React.useRef(elementRef.current?.getBoundingClientRect()[key] || 0);
 
   const recalculatePosition = useEventCallback((event: NativeTouchOrMouseEvent) => {
     const { clientX, clientY } = getEventClientCoords(event);
     const deltaCoords = [clientX - startCoords.current.clientX, clientY - startCoords.current.clientY];
 
+    let newValue = initialValue.current;
+
     switch (growDirection) {
       case 'right':
-        onValueChange(initialValue + deltaCoords[0]);
+        newValue += deltaCoords[0];
         break;
       case 'left':
-        onValueChange(initialValue - deltaCoords[0]);
+        newValue -= deltaCoords[0];
         break;
       case 'top':
-        onValueChange(initialValue - deltaCoords[1]);
+        newValue -= deltaCoords[1];
         break;
       case 'bottom':
-        onValueChange(initialValue + deltaCoords[1]);
+        newValue += deltaCoords[1];
         break;
+    }
+
+    onValueChange(Math.round(newValue));
+
+    // If, after resize, the element size is different than the value we set, that we have reached the boundary
+    // and the element size is controlled by something else (minmax, clamp, max, min css functions etc.)
+    // In this case, we need to update the value to the actual element size so that the css var and a11y props
+    // reflect the reality.
+    const elSize = Math.round(elementRef.current?.getBoundingClientRect()[key] || 0);
+    if (elSize !== newValue) {
+      onValueChange(elSize);
     }
   });
 
@@ -50,8 +64,6 @@ export function useMouseHandler(params: UseMouseHandlerParams) {
   });
 
   const onDragEnd = useEventCallback((event: NativeTouchOrMouseEvent) => {
-    params.onMoveEnd?.(event);
-
     if (isMouseEvent(event)) {
       targetDocument?.removeEventListener('mouseup', onDragEnd);
       targetDocument?.removeEventListener('mousemove', onDrag);
@@ -65,11 +77,7 @@ export function useMouseHandler(params: UseMouseHandlerParams) {
 
   const onPointerDown = useEventCallback((event: NativeTouchOrMouseEvent) => {
     startCoords.current = getEventClientCoords(event);
-
-    const elementSize = elementRef?.current?.getBoundingClientRect();
-    if (elementSize && initialValue !== elementSize.width) {
-      onValueChange(elementSize.width);
-    }
+    initialValue.current = elementRef?.current?.getBoundingClientRect().width || 0;
 
     if (event.defaultPrevented) {
       return;

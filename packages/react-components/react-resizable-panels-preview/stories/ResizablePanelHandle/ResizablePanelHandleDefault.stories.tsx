@@ -68,7 +68,11 @@ export const Default = () => {
     },
   });
 
-  const { handleRef: sideHandleRef, wrapperRef: sideWrapperRef } = useResizingHandle({
+  const {
+    handleRef: sideHandleRef,
+    wrapperRef: sideWrapperRef,
+    elementRef: sideElementRef,
+  } = useResizingHandle({
     variableName: '--side-size',
     growDirection: 'left',
     initialValue: SIDE_INITIAL_WIDTH,
@@ -91,7 +95,7 @@ export const Default = () => {
         </div>
         <div className={boxStyles} style={{ gridArea: 'sub-nav' }} />
         <div className={boxStyles} style={{ gridArea: 'main' }} />
-        <div className={boxStyles} style={{ gridArea: 'side' }}>
+        <div className={boxStyles} style={{ gridArea: 'side' }} ref={sideElementRef}>
           <Handle position="left" ref={sideHandleRef} />
         </div>
       </div>
