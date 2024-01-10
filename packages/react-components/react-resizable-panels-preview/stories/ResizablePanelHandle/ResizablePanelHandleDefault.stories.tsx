@@ -16,7 +16,7 @@ const Handle = React.forwardRef<HTMLDivElement, { position: 'left' | 'right' }>(
         top: '50%',
         transform: 'translateY(-50%)',
         width: '8px',
-        height: '62px',
+        height: '100px',
         borderRadius: '4px',
         backgroundColor: 'gray',
         cursor: 'ew-resize',

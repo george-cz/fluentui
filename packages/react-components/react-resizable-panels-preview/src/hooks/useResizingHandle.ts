@@ -3,6 +3,7 @@ import {
   NativeTouchOrMouseEvent,
   getEventClientCoords,
   isMouseEvent,
+  isTouchEvent,
   useEventCallback,
 } from '@fluentui/react-utilities';
 import * as React from 'react';
@@ -45,7 +46,7 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
     onChange?.(currentValue.current);
   }, [onChange, variableName]);
 
-  // In case the maxValue or minValue is changed, we need to make sure that the currentValue is still within the limits.
+  // In case the maxValue or minValue is changed, we need to make sure we are not exceeding the new limits
   React.useEffect(() => {
     const newValue = limitValue(currentValue.current, minValue, maxValue);
     if (newValue !== currentValue.current) {
@@ -55,8 +56,8 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
   }, [maxValue, minValue, updateVariableValue]);
 
   const recalculatePosition = React.useCallback(
-    (e: NativeTouchOrMouseEvent) => {
-      const { clientX, clientY } = getEventClientCoords(e);
+    (event: NativeTouchOrMouseEvent) => {
+      const { clientX, clientY } = getEventClientCoords(event);
       const deltaCoords = [clientX - startCoords.current.clientX, clientY - startCoords.current.clientY];
 
       switch (growDirection) {
@@ -79,60 +80,71 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
     [growDirection, maxValue, minValue, updateVariableValue],
   );
 
-  const onMouseDown = useEventCallback((e: MouseEvent) => {
+  const onPointerDown = useEventCallback((event: NativeTouchOrMouseEvent) => {
     // save pointer location on mouse down
-    startCoords.current = getEventClientCoords(e);
+    startCoords.current = getEventClientCoords(event);
 
-    if (isMouseEvent(e)) {
+    if (isMouseEvent(event)) {
       // ignore other buttons than primary mouse button
-      if (e.target !== e.currentTarget || e.button !== 0) {
+      if (event.target !== event.currentTarget || event.button !== 0) {
         return;
       }
       targetDocument?.addEventListener('mouseup', onDragEnd);
       targetDocument?.addEventListener('mousemove', onDrag);
     }
+
+    if (isTouchEvent(event)) {
+      targetDocument?.addEventListener('touchend', onDragEnd);
+      targetDocument?.addEventListener('touchmove', onDrag);
+    }
   });
 
   const onDrag = React.useCallback(
-    (e: NativeTouchOrMouseEvent) => {
+    (event: NativeTouchOrMouseEvent) => {
       //Using requestAnimationFrame improves performance on slower CPUs
       if (typeof globalWin?.requestAnimationFrame === 'function') {
-        requestAnimationFrame(() => recalculatePosition(e));
+        requestAnimationFrame(() => recalculatePosition(event));
       } else {
-        recalculatePosition(e);
+        recalculatePosition(event);
       }
     },
     [globalWin?.requestAnimationFrame, recalculatePosition],
   );
 
   const onDragEnd = useEventCallback((event: NativeTouchOrMouseEvent) => {
+    // Commit the current value to be used as a base for calculations on next drag
+    commitedValue.current = currentValue.current;
+
     if (isMouseEvent(event)) {
       targetDocument?.removeEventListener('mouseup', onDragEnd);
       targetDocument?.removeEventListener('mousemove', onDrag);
     }
 
-    // Commit the current value to be used as a base for calculations on next drag
-    commitedValue.current = currentValue.current;
-
-    // if (isTouchEvent(event)) {
-    //   targetDocument?.removeEventListener('touchend', onDragEnd);
-    //   targetDocument?.removeEventListener('touchmove', onDrag);
-    // }
+    if (isTouchEvent(event)) {
+      targetDocument?.removeEventListener('touchend', onDragEnd);
+      targetDocument?.removeEventListener('touchmove', onDrag);
+    }
   });
+
+  const setValue = React.useCallback(
+    (value: number) => {
+      commitedValue.current = currentValue.current = limitValue(value, minValue, maxValue);
+      updateVariableValue();
+    },
+    [maxValue, minValue, updateVariableValue],
+  );
 
   const setHandleRef = React.useCallback(
     node => {
       if (node) {
         handleRef.current = node;
-        node.addEventListener('mousedown', onMouseDown);
+        node.addEventListener('mousedown', onPointerDown);
+        node.addEventListener('touchstart', onPointerDown);
       }
-      // TODO is this needed?
-      // if (handleRef.current && !node) {
-      //   handleRef.current.removeEventListener('mousedown', onMouseDown);
-      // }
     },
-    [onMouseDown],
+    [onPointerDown],
   );
+
   const setWrapperRef = React.useCallback(
     node => {
       if (node) {
@@ -143,17 +155,9 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
     [updateVariableValue],
   );
 
-  const setValue = React.useCallback(
-    (value: number) => {
-      commitedValue.current = currentValue.current = limitValue(value, minValue, maxValue);
-      updateVariableValue();
-    },
-    [maxValue, minValue, updateVariableValue],
-  );
-
   return {
+    setValue,
     handleRef: setHandleRef,
     wrapperRef: setWrapperRef,
-    setValue,
   };
 };
