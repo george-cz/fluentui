@@ -1,12 +1,6 @@
-import { useFluent_unstable as useFluent } from '@fluentui/react-shared-contexts';
-import {
-  NativeTouchOrMouseEvent,
-  getEventClientCoords,
-  isMouseEvent,
-  isTouchEvent,
-  useEventCallback,
-} from '@fluentui/react-utilities';
+import { NativeTouchOrMouseEvent, getEventClientCoords } from '@fluentui/react-utilities';
 import * as React from 'react';
+import { useMouseHandler } from './useMouseHandler';
 
 export type UseResizingHandleParams = {
   growDirection: 'right' | 'left' | 'top' | 'bottom';
@@ -31,11 +25,8 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
     onChange,
   } = params;
 
-  const { targetDocument } = useFluent();
-  const globalWin = targetDocument?.defaultView;
-
-  const handleRef = React.useRef(null);
-  const wrapperRef = React.useRef<HTMLDivElement | null>(null);
+  const handleRef = React.useRef<HTMLElement | null>(null);
+  const wrapperRef = React.useRef<HTMLElement | null>(null);
 
   const startCoords = React.useRef({ clientX: 0, clientY: 0 });
   const currentValue = React.useRef(initialValue);
@@ -80,50 +71,10 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
     [growDirection, maxValue, minValue, updateVariableValue],
   );
 
-  const onPointerDown = useEventCallback((event: NativeTouchOrMouseEvent) => {
-    // save pointer location on mouse down
-    startCoords.current = getEventClientCoords(event);
-
-    if (isMouseEvent(event)) {
-      // ignore other buttons than primary mouse button
-      if (event.target !== event.currentTarget || event.button !== 0) {
-        return;
-      }
-      targetDocument?.addEventListener('mouseup', onDragEnd);
-      targetDocument?.addEventListener('mousemove', onDrag);
-    }
-
-    if (isTouchEvent(event)) {
-      targetDocument?.addEventListener('touchend', onDragEnd);
-      targetDocument?.addEventListener('touchmove', onDrag);
-    }
-  });
-
-  const onDrag = React.useCallback(
-    (event: NativeTouchOrMouseEvent) => {
-      //Using requestAnimationFrame improves performance on slower CPUs
-      if (typeof globalWin?.requestAnimationFrame === 'function') {
-        requestAnimationFrame(() => recalculatePosition(event));
-      } else {
-        recalculatePosition(event);
-      }
-    },
-    [globalWin?.requestAnimationFrame, recalculatePosition],
-  );
-
-  const onDragEnd = useEventCallback((event: NativeTouchOrMouseEvent) => {
-    // Commit the current value to be used as a base for calculations on next drag
-    commitedValue.current = currentValue.current;
-
-    if (isMouseEvent(event)) {
-      targetDocument?.removeEventListener('mouseup', onDragEnd);
-      targetDocument?.removeEventListener('mousemove', onDrag);
-    }
-
-    if (isTouchEvent(event)) {
-      targetDocument?.removeEventListener('touchend', onDragEnd);
-      targetDocument?.removeEventListener('touchmove', onDrag);
-    }
+  const { attachListeners } = useMouseHandler({
+    onDown: (event: NativeTouchOrMouseEvent) => (startCoords.current = getEventClientCoords(event)),
+    onMove: recalculatePosition,
+    onMoveEnd: () => (commitedValue.current = currentValue.current),
   });
 
   const setValue = React.useCallback(
@@ -134,18 +85,17 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
     [maxValue, minValue, updateVariableValue],
   );
 
-  const setHandleRef = React.useCallback(
+  const setHandleRef: React.RefCallback<HTMLElement> = React.useCallback(
     node => {
       if (node) {
         handleRef.current = node;
-        node.addEventListener('mousedown', onPointerDown);
-        node.addEventListener('touchstart', onPointerDown);
+        attachListeners(node);
       }
     },
-    [onPointerDown],
+    [attachListeners],
   );
 
-  const setWrapperRef = React.useCallback(
+  const setWrapperRef: React.RefCallback<HTMLElement> = React.useCallback(
     node => {
       if (node) {
         wrapperRef.current = node;
@@ -159,5 +109,12 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
     setValue,
     handleRef: setHandleRef,
     wrapperRef: setWrapperRef,
+    handleProps: {
+      tabIndex: 0,
+      role: 'separator',
+      'aria-valuemin': minValue,
+      'aria-valuemax': maxValue,
+      'aria-valuetext': currentValue.current,
+    },
   };
 };

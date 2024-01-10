@@ -6,9 +6,10 @@ const NAV_INITIAL_WIDTH = 80;
 const SIDE_INITIAL_WIDTH = 70;
 
 const Handle = React.forwardRef<HTMLDivElement, { position: 'left' | 'right' }>((props, ref) => {
-  const { position } = props;
+  const { position, ...rest } = props;
   return (
     <div
+      {...rest}
       ref={ref}
       style={{
         position: 'absolute',
@@ -54,6 +55,7 @@ export const Default = () => {
     handleRef: navHandleRef,
     wrapperRef: navWrapperRef,
     setValue,
+    handleProps,
   } = useResizingHandle({
     variableName: '--nav-size',
     growDirection: 'right',
@@ -84,7 +86,7 @@ export const Default = () => {
       <div className={wrapperStyles} ref={wrapperRef}>
         <div className={boxStyles} style={{ gridArea: 'nav' }}>
           <button onClick={() => setMaxValue(200)}>Set max 200</button>
-          <Handle position="right" ref={navHandleRef} />
+          <Handle position="right" ref={navHandleRef} {...handleProps} />
         </div>
         <div className={boxStyles} style={{ gridArea: 'sub-nav' }} />
         <div className={boxStyles} style={{ gridArea: 'main' }} />
