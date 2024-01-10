@@ -10,9 +10,9 @@ import * as React from 'react';
 export type UseResizingHandleParams = {
   growDirection: 'right' | 'left' | 'top' | 'bottom';
   variableName: string;
-  initialValue: number; // value in px or rem
-  minValue?: number; // value in px or rem
-  maxValue?: number; // value in px or rem
+  initialValue: number;
+  minValue?: number;
+  maxValue?: number;
   onChange?: (value: number) => void;
 };
 
@@ -21,7 +21,14 @@ function limitValue(value: number, min: number, max: number) {
 }
 
 export const useResizingHandle = (params: UseResizingHandleParams) => {
-  const { growDirection, initialValue, variableName, minValue = 0, maxValue = 99999999, onChange } = params;
+  const {
+    growDirection,
+    initialValue,
+    variableName,
+    minValue = 0,
+    maxValue = Number.MAX_SAFE_INTEGER,
+    onChange,
+  } = params;
 
   const { targetDocument } = useFluent();
   const globalWin = targetDocument?.defaultView;
@@ -30,19 +37,19 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
   const wrapperRef = React.useRef<HTMLDivElement | null>(null);
 
   const startCoords = React.useRef({ clientX: 0, clientY: 0 });
-  const latestValue = React.useRef(initialValue);
-  const previousValue = React.useRef(initialValue);
+  const currentValue = React.useRef(initialValue);
+  const commitedValue = React.useRef(initialValue);
 
   const updateVariableValue = React.useCallback(() => {
-    wrapperRef.current?.style.setProperty(variableName, `${latestValue.current}px`);
-    onChange?.(latestValue.current);
+    wrapperRef.current?.style.setProperty(variableName, `${currentValue.current}px`);
+    onChange?.(currentValue.current);
   }, [onChange, variableName]);
 
-  // In case the maxValue or minValue is changed, we need to make sure that the latestValue is still within the limits.
+  // In case the maxValue or minValue is changed, we need to make sure that the currentValue is still within the limits.
   React.useEffect(() => {
-    const newValue = limitValue(latestValue.current, minValue, maxValue);
-    if (newValue !== latestValue.current) {
-      latestValue.current = newValue;
+    const newValue = limitValue(currentValue.current, minValue, maxValue);
+    if (newValue !== currentValue.current) {
+      commitedValue.current = currentValue.current = newValue;
       updateVariableValue();
     }
   }, [maxValue, minValue, updateVariableValue]);
@@ -50,21 +57,20 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
   const recalculatePosition = React.useCallback(
     (e: NativeTouchOrMouseEvent) => {
       const { clientX, clientY } = getEventClientCoords(e);
-
       const deltaCoords = [clientX - startCoords.current.clientX, clientY - startCoords.current.clientY];
 
       switch (growDirection) {
         case 'right':
-          latestValue.current = limitValue(previousValue.current + deltaCoords[0], minValue, maxValue);
+          currentValue.current = limitValue(commitedValue.current + deltaCoords[0], minValue, maxValue);
           break;
         case 'left':
-          latestValue.current = limitValue(previousValue.current - deltaCoords[0], minValue, maxValue);
+          currentValue.current = limitValue(commitedValue.current - deltaCoords[0], minValue, maxValue);
           break;
         case 'top':
-          latestValue.current = limitValue(previousValue.current - deltaCoords[1], minValue, maxValue);
+          currentValue.current = limitValue(commitedValue.current - deltaCoords[1], minValue, maxValue);
           break;
         case 'bottom':
-          latestValue.current = limitValue(previousValue.current + deltaCoords[1], minValue, maxValue);
+          currentValue.current = limitValue(commitedValue.current + deltaCoords[1], minValue, maxValue);
           break;
       }
 
@@ -74,7 +80,7 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
   );
 
   const onMouseDown = useEventCallback((e: MouseEvent) => {
-    // save mouse location on mouse down
+    // save pointer location on mouse down
     startCoords.current = getEventClientCoords(e);
 
     if (isMouseEvent(e)) {
@@ -105,8 +111,8 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
       targetDocument?.removeEventListener('mousemove', onDrag);
     }
 
-    // Save current value as previous value to be used in next drag
-    previousValue.current = latestValue.current;
+    // Commit the current value to be used as a base for calculations on next drag
+    commitedValue.current = currentValue.current;
 
     // if (isTouchEvent(event)) {
     //   targetDocument?.removeEventListener('touchend', onDragEnd);
@@ -139,7 +145,7 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
 
   const setValue = React.useCallback(
     (value: number) => {
-      previousValue.current = latestValue.current = limitValue(value, minValue, maxValue);
+      commitedValue.current = currentValue.current = limitValue(value, minValue, maxValue);
       updateVariableValue();
     },
     [maxValue, minValue, updateVariableValue],
