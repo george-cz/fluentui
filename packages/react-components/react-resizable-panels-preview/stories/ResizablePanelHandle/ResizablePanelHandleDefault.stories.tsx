@@ -35,7 +35,8 @@ const useMainWrapperStyles = makeResetStyles({
   width: '100%',
   height: '100%',
   gap: '16px',
-  gridTemplate: '"nav sub-nav main side" minmax(0, 1fr) / var(--nav-size) 150px 1fr var(--side-size)',
+  gridTemplate:
+    '"nav sub-nav main side" minmax(0, 1fr) / clamp(30px, var(--nav-size), 40%)  150px 1fr var(--side-size)',
 });
 
 const useMainBoxStyles = makeResetStyles({
@@ -54,13 +55,13 @@ export const Default = () => {
   const {
     handleRef: navHandleRef,
     wrapperRef: navWrapperRef,
+    elementRef: navElementRef,
     setValue,
-    handleProps,
   } = useResizingHandle({
     variableName: '--nav-size',
     growDirection: 'right',
     initialValue: NAV_INITIAL_WIDTH,
-    minValue: 30,
+    minValue: 60,
     maxValue,
     onChange: (value: number) => {
       console.log('onChange', value);
@@ -84,9 +85,9 @@ export const Default = () => {
       <button onClick={() => setValue(350)}>Set first column to {350}</button>
 
       <div className={wrapperStyles} ref={wrapperRef}>
-        <div className={boxStyles} style={{ gridArea: 'nav' }}>
+        <div className={boxStyles} style={{ gridArea: 'nav' }} ref={navElementRef}>
           <button onClick={() => setMaxValue(200)}>Set max 200</button>
-          <Handle position="right" ref={navHandleRef} {...handleProps} />
+          <Handle position="right" ref={navHandleRef} />
         </div>
         <div className={boxStyles} style={{ gridArea: 'sub-nav' }} />
         <div className={boxStyles} style={{ gridArea: 'main' }} />

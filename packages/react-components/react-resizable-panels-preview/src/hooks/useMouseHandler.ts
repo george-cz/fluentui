@@ -57,7 +57,7 @@ export function useMouseHandler(params: UseMouseHandlerParams = {}) {
     }
   });
 
-  const attachListeners = React.useCallback(
+  const attachHandlers = React.useCallback(
     (node: HTMLElement) => {
       node.addEventListener('mousedown', onPointerDown);
       node.addEventListener('touchstart', onPointerDown);
@@ -66,6 +66,6 @@ export function useMouseHandler(params: UseMouseHandlerParams = {}) {
   );
 
   return {
-    attachListeners,
+    attachHandlers,
   };
 }

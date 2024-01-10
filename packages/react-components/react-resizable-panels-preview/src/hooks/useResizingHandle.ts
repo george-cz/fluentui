@@ -1,6 +1,7 @@
-import { NativeTouchOrMouseEvent, getEventClientCoords } from '@fluentui/react-utilities';
+import { NativeTouchOrMouseEvent, getEventClientCoords, useEventCallback } from '@fluentui/react-utilities';
 import * as React from 'react';
 import { useMouseHandler } from './useMouseHandler';
+import { getCode, keyboardKey } from '@fluentui/accessibility';
 
 export type UseResizingHandleParams = {
   growDirection: 'right' | 'left' | 'top' | 'bottom';
@@ -9,11 +10,41 @@ export type UseResizingHandleParams = {
   minValue?: number;
   maxValue?: number;
   onChange?: (value: number) => void;
+  getValueText?: (value: number) => string;
 };
 
 function limitValue(value: number, min: number, max: number) {
   return Math.max(Math.min(value, max), min);
 }
+
+type UseKeyboardHandlerOptions = {
+  value: number;
+  onValueChange: (value: number) => void;
+};
+
+const useKeyboardHandler = (options: UseKeyboardHandlerOptions) => {
+  const { value, onValueChange } = options;
+
+  const onKeyDown = useEventCallback((event: React.KeyboardEvent) => {
+    if (getCode(event) === keyboardKey.ArrowRight) {
+      onValueChange(value + 20);
+    }
+    if (getCode(event) === keyboardKey.ArrowLeft) {
+      onValueChange(value - 20);
+    }
+  });
+
+  const attachHandlers = React.useCallback(
+    (node: HTMLElement) => {
+      node.addEventListener('keydown', onKeyDown);
+    },
+    [onKeyDown],
+  );
+
+  return {
+    attachHandlers,
+  };
+};
 
 export const useResizingHandle = (params: UseResizingHandleParams) => {
   const {
@@ -23,10 +54,12 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
     minValue = 0,
     maxValue = Number.MAX_SAFE_INTEGER,
     onChange,
+    getValueText = value => `${value.toFixed(0)}px`,
   } = params;
 
   const handleRef = React.useRef<HTMLElement | null>(null);
   const wrapperRef = React.useRef<HTMLElement | null>(null);
+  const elementRef = React.useRef<HTMLElement | null>(null);
 
   const startCoords = React.useRef({ clientX: 0, clientY: 0 });
   const currentValue = React.useRef(initialValue);
@@ -37,14 +70,46 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
     onChange?.(currentValue.current);
   }, [onChange, variableName]);
 
+  const updateProps = React.useCallback(() => {
+    const handleProps = {
+      tabIndex: 0,
+      role: 'separator',
+      'aria-valuemin': minValue,
+      'aria-valuemax': maxValue,
+      'aria-valuetext': getValueText(currentValue.current),
+    };
+
+    Object.entries(handleProps).forEach(([key, value]) => {
+      handleRef.current?.setAttribute(key, String(value));
+    });
+  }, [getValueText, maxValue, minValue]);
+
+  const commitValue = React.useCallback(() => {
+    commitedValue.current = currentValue.current;
+
+    // Measure the final element size, if its different than the current value, that means the element size
+    // is controlled by another aspect than just straight up pixel value (could be minmax, clamp, max, min css functions
+    // etc. If this is the case, commit the actual element size to the value, so that next time the handle is dragged,
+    // it will start from the correct position.
+
+    const elementSize = elementRef.current?.getBoundingClientRect();
+    if (elementSize && commitedValue.current !== elementSize.width) {
+      commitedValue.current = currentValue.current = elementSize.width;
+      updateVariableValue();
+    }
+
+    updateProps();
+  }, [updateProps, updateVariableValue]);
+
   // In case the maxValue or minValue is changed, we need to make sure we are not exceeding the new limits
   React.useEffect(() => {
     const newValue = limitValue(currentValue.current, minValue, maxValue);
     if (newValue !== currentValue.current) {
       commitedValue.current = currentValue.current = newValue;
       updateVariableValue();
+      commitValue();
     }
-  }, [maxValue, minValue, updateVariableValue]);
+  }, [commitValue, maxValue, minValue, updateVariableValue]);
 
   const recalculatePosition = React.useCallback(
     (event: NativeTouchOrMouseEvent) => {
@@ -71,31 +136,39 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
     [growDirection, maxValue, minValue, updateVariableValue],
   );
 
-  const { attachListeners } = useMouseHandler({
-    onDown: (event: NativeTouchOrMouseEvent) => (startCoords.current = getEventClientCoords(event)),
-    onMove: recalculatePosition,
-    onMoveEnd: () => (commitedValue.current = currentValue.current),
-  });
-
   const setValue = React.useCallback(
     (value: number) => {
       commitedValue.current = currentValue.current = limitValue(value, minValue, maxValue);
       updateVariableValue();
+      commitValue();
     },
-    [maxValue, minValue, updateVariableValue],
+    [commitValue, maxValue, minValue, updateVariableValue],
   );
 
-  const setHandleRef: React.RefCallback<HTMLElement> = React.useCallback(
+  const { attachHandlers: attachMouseHandlers } = useMouseHandler({
+    onDown: (event: NativeTouchOrMouseEvent) => (startCoords.current = getEventClientCoords(event)),
+    onMove: recalculatePosition,
+    onMoveEnd: commitValue,
+  });
+
+  const { attachHandlers: attachKeyboardHandlers } = useKeyboardHandler({
+    value: currentValue.current,
+    onValueChange: setValue,
+  });
+
+  const setHandleRef = React.useCallback(
     node => {
       if (node) {
         handleRef.current = node;
-        attachListeners(node);
+        attachMouseHandlers(node);
+        attachKeyboardHandlers(node);
+        updateProps();
       }
     },
-    [attachListeners],
+    [attachKeyboardHandlers, attachMouseHandlers, updateProps],
   );
 
-  const setWrapperRef: React.RefCallback<HTMLElement> = React.useCallback(
+  const setWrapperRef = React.useCallback(
     node => {
       if (node) {
         wrapperRef.current = node;
@@ -107,14 +180,8 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
 
   return {
     setValue,
+    elementRef,
     handleRef: setHandleRef,
     wrapperRef: setWrapperRef,
-    handleProps: {
-      tabIndex: 0,
-      role: 'separator',
-      'aria-valuemin': minValue,
-      'aria-valuemax': maxValue,
-      'aria-valuetext': currentValue.current,
-    },
   };
 };
