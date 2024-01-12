@@ -1,7 +1,7 @@
-import { NativeTouchOrMouseEvent, getEventClientCoords } from '@fluentui/react-utilities';
 import * as React from 'react';
-import { useMouseHandler } from './useMouseHandler';
 import { useKeyboardHandler } from './useKeyboardHandler';
+import { useMouseHandler } from './useMouseHandler';
+import { NativeTouchOrMouseEvent, useEventCallback } from '@fluentui/react-utilities';
 
 export type UseResizingHandleParams = {
   growDirection: 'right' | 'left' | 'top' | 'bottom';
@@ -10,10 +10,12 @@ export type UseResizingHandleParams = {
   minValue?: number;
   maxValue?: number;
   onChange?: (value: number) => void;
+  onDragStart?: (e: NativeTouchOrMouseEvent, value: number) => void;
+  onDragEnd?: (e: NativeTouchOrMouseEvent, value: number) => void;
   getValueText?: (value: number) => string;
 };
 
-function limitValue(value: number, min: number, max: number) {
+function clampValue(value: number, min: number, max: number) {
   return Math.max(Math.min(value, max), min);
 }
 
@@ -25,6 +27,8 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
     minValue = 0,
     maxValue = Number.MAX_SAFE_INTEGER,
     onChange,
+    onDragStart,
+    onDragEnd,
     getValueText = value => `${value.toFixed(0)}px`,
   } = params;
 
@@ -34,9 +38,9 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
 
   const currentValue = React.useRef(initialValue);
 
-  const flushUpdatesToDOM = React.useCallback(() => {
+  const updateDomElements = React.useCallback(() => {
     wrapperRef.current?.style.setProperty(variableName, `${currentValue.current}px`);
-    const handleProps = {
+    const handleAttributes = {
       tabIndex: 0,
       role: 'separator',
       'aria-valuemin': minValue,
@@ -44,43 +48,45 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
       'aria-valuetext': getValueText(currentValue.current),
     };
 
-    Object.entries(handleProps).forEach(([key, value]) => {
+    Object.entries(handleAttributes).forEach(([key, value]) => {
       handleRef.current?.setAttribute(key, String(value));
     });
-  }, [getValueText, maxValue, minValue, variableName]);
+
+    onChange?.(currentValue.current);
+  }, [getValueText, maxValue, minValue, onChange, variableName]);
 
   // In case the maxValue or minValue is changed, we need to make sure we are not exceeding the new limits
   React.useEffect(() => {
-    const newValue = limitValue(currentValue.current, minValue, maxValue);
+    const newValue = clampValue(currentValue.current, minValue, maxValue);
     if (newValue !== currentValue.current) {
       currentValue.current = newValue;
-      flushUpdatesToDOM();
+      updateDomElements();
     }
-  }, [maxValue, minValue, flushUpdatesToDOM]);
+  }, [maxValue, minValue, updateDomElements]);
 
   const setValue = React.useCallback(
     (value: number) => {
-      currentValue.current = limitValue(value, minValue, maxValue);
-      flushUpdatesToDOM();
+      currentValue.current = clampValue(value, minValue, maxValue);
+      updateDomElements();
     },
-    [minValue, maxValue, flushUpdatesToDOM],
+    [minValue, maxValue, updateDomElements],
   );
 
-  const handleMouseValueChanged = React.useCallback(
-    (value: number) => {
-      currentValue.current = limitValue(value, minValue, maxValue);
-      flushUpdatesToDOM();
-    },
-    [flushUpdatesToDOM, maxValue, minValue],
-  );
-
-  const { attachHandlers: attachMouseHandlers } = useMouseHandler({
+  const onDragStartLocal = useEventCallback((e: NativeTouchOrMouseEvent) => {
+    onDragStart?.(e, currentValue.current);
+  });
+  const onDragEndLocal = useEventCallback((e: NativeTouchOrMouseEvent) => {
+    onDragEnd?.(e, currentValue.current);
+  });
+  const { attachHandlers: attachMouseHandlers, detachHandlers: detachMouseHandlers } = useMouseHandler({
     elementRef,
     growDirection,
-    onValueChange: handleMouseValueChanged,
+    onValueChange: setValue,
+    onDragStart: onDragStartLocal,
+    onDragEnd: onDragEndLocal,
   });
 
-  const { attachHandlers: attachKeyboardHandlers } = useKeyboardHandler({
+  const { attachHandlers: attachKeyboardHandlers, detachHandlers: detachKeyboardHandlers } = useKeyboardHandler({
     elementRef,
     growDirection,
     onValueChange: setValue,
@@ -89,23 +95,28 @@ export const useResizingHandle = (params: UseResizingHandleParams) => {
   const setHandleRef = React.useCallback(
     node => {
       if (node) {
+        if (handleRef.current !== node) {
+          detachMouseHandlers(node);
+          detachKeyboardHandlers(node);
+        }
+        // TODO If node different, remove handlers from previous node
         handleRef.current = node;
         attachMouseHandlers(node);
         attachKeyboardHandlers(node);
-        flushUpdatesToDOM();
+        updateDomElements();
       }
     },
-    [attachKeyboardHandlers, attachMouseHandlers, flushUpdatesToDOM],
+    [attachKeyboardHandlers, attachMouseHandlers, detachKeyboardHandlers, detachMouseHandlers, updateDomElements],
   );
 
   const setWrapperRef = React.useCallback(
     node => {
       if (node) {
         wrapperRef.current = node;
-        flushUpdatesToDOM();
+        updateDomElements();
       }
     },
-    [flushUpdatesToDOM],
+    [updateDomElements],
   );
 
   return {

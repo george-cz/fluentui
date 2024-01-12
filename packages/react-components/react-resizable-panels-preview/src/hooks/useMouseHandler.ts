@@ -6,9 +6,11 @@ import * as React from 'react';
 export type UseMouseHandlerParams = {
   onDown?: (event: NativeTouchOrMouseEvent) => void;
   onMove?: (event: NativeTouchOrMouseEvent) => void;
+  elementRef: React.RefObject<HTMLElement>;
   growDirection: 'right' | 'left' | 'top' | 'bottom';
   onValueChange: (value: number) => void;
-  elementRef: React.RefObject<HTMLElement>;
+  onDragEnd?: (e: NativeTouchOrMouseEvent) => void;
+  onDragStart?: (e: NativeTouchOrMouseEvent) => void;
 };
 
 export function useMouseHandler(params: UseMouseHandlerParams) {
@@ -73,6 +75,8 @@ export function useMouseHandler(params: UseMouseHandlerParams) {
       targetDocument?.removeEventListener('touchend', onDragEnd);
       targetDocument?.removeEventListener('touchmove', onDrag);
     }
+
+    params.onDragEnd?.(event);
   });
 
   const onPointerDown = useEventCallback((event: NativeTouchOrMouseEvent) => {
@@ -96,6 +100,8 @@ export function useMouseHandler(params: UseMouseHandlerParams) {
       targetDocument?.addEventListener('touchend', onDragEnd);
       targetDocument?.addEventListener('touchmove', onDrag);
     }
+
+    params.onDragStart?.(event);
   });
 
   const attachHandlers = React.useCallback(
@@ -106,7 +112,16 @@ export function useMouseHandler(params: UseMouseHandlerParams) {
     [onPointerDown],
   );
 
+  const detachHandlers = React.useCallback(
+    (node: HTMLElement) => {
+      node.removeEventListener('mousedown', onPointerDown);
+      node.removeEventListener('touchstart', onPointerDown);
+    },
+    [onPointerDown],
+  );
+
   return {
     attachHandlers,
+    detachHandlers,
   };
 }

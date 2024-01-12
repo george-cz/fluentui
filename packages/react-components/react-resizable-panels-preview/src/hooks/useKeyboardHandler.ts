@@ -57,8 +57,15 @@ export const useKeyboardHandler = (options: UseKeyboardHandlerOptions) => {
     },
     [onKeyDown],
   );
+  const detachHandlers = React.useCallback(
+    (node: HTMLElement) => {
+      node.removeEventListener('keydown', onKeyDown);
+    },
+    [onKeyDown],
+  );
 
   return {
     attachHandlers,
+    detachHandlers,
   };
 };

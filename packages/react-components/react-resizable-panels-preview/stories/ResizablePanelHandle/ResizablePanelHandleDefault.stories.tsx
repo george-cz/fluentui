@@ -56,7 +56,7 @@ export const Default = () => {
     handleRef: navHandleRef,
     wrapperRef: navWrapperRef,
     elementRef: navElementRef,
-    setValue,
+    setValue: setLeftColumnSize,
   } = useResizingHandle({
     variableName: '--nav-size',
     growDirection: 'right',
@@ -65,6 +65,12 @@ export const Default = () => {
     maxValue,
     onChange: (value: number) => {
       console.log('onChange', value);
+    },
+    onDragStart: (e, value: number) => {
+      console.log('onDragStart', e, value);
+    },
+    onDragEnd: (e, value: number) => {
+      console.log('onDragEnd', e, value);
     },
   });
 
@@ -84,9 +90,9 @@ export const Default = () => {
 
   return (
     <div className={pageStyles}>
-      <button onClick={() => setValue(10)}>Set first column to {10}</button>
-      <button onClick={() => setValue(100)}>Set first column to {100}</button>
-      <button onClick={() => setValue(350)}>Set first column to {350}</button>
+      <button onClick={() => setLeftColumnSize(10)}>Set first column to {10}</button>
+      <button onClick={() => setLeftColumnSize(100)}>Set first column to {100}</button>
+      <button onClick={() => setLeftColumnSize(350)}>Set first column to {350}</button>
 
       <div className={wrapperStyles} ref={wrapperRef}>
         <div className={boxStyles} style={{ gridArea: 'nav' }} ref={navElementRef}>
