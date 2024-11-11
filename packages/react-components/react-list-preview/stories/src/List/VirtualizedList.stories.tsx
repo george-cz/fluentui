@@ -206,12 +206,17 @@ const useTextStyle = makeResetStyles({
   color: tokens.colorNeutralForeground1,
 });
 
+const useListItemStyles = makeResetStyles({
+  margin: '4px',
+});
+
 const CountriesList = React.forwardRef<HTMLUListElement>((props: React.ComponentProps<typeof List>, ref) => (
   <List aria-label="Countries" tabIndex={0} {...props} ref={ref} />
 ));
 
 export const VirtualizedList = () => {
   const textStyle = useTextStyle();
+  const liStyle = useListItemStyles();
   return (
     <FixedSizeList
       height={400}
@@ -222,7 +227,7 @@ export const VirtualizedList = () => {
       outerElementType={CountriesList}
     >
       {({ index, style, data }) => (
-        <ListItem style={style} aria-setsize={countries.length} aria-posinset={index + 1}>
+        <ListItem className={liStyle} style={style} aria-setsize={countries.length} aria-posinset={index + 1}>
           <Text className={textStyle}>{data[index]}</Text>
         </ListItem>
       )}

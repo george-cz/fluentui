@@ -157,6 +157,7 @@ export const MultipleActionsSelection = () => {
 
   return (
     <List
+      aria-label="List with multiple actions and selection"
       as="div"
       className={classes.list}
       navigationMode="composite"

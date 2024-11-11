@@ -27,7 +27,11 @@ export const SingleActionSelection = () => {
   const defaultSelectedItems = ['Demetra Manwaring', 'Bart Merrill'];
 
   return (
-    <List selectionMode="multiselect" defaultSelectedItems={defaultSelectedItems} aria-label="People example">
+    <List
+      aria-label="List with a single action and selection"
+      selectionMode="multiselect"
+      defaultSelectedItems={defaultSelectedItems}
+    >
       {items.map(({ name, avatar }) => (
         <ListItem key={name} value={name} aria-label={name} checkmark={{ 'aria-label': name }}>
           <Persona

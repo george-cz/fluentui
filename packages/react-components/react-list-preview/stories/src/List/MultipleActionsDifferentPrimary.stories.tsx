@@ -165,6 +165,7 @@ export const MultipleActionsDifferentPrimary = () => {
 
   return (
     <List
+      aria-label="List with multiple actions and different primary action"
       as="div"
       className={classes.list}
       navigationMode="composite"

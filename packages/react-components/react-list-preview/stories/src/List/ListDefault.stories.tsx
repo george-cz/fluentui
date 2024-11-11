@@ -9,7 +9,7 @@ const useTextStyle = makeResetStyles({
 export const Default = () => {
   const textStyle = useTextStyle();
   return (
-    <List>
+    <List aria-label="Basic list">
       <ListItem>
         <Text className={textStyle}>Asia</Text>
       </ListItem>

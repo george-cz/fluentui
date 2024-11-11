@@ -43,10 +43,10 @@ export const SingleActionSelectionControlled = () => {
       </div>
 
       <List
+        aria-label="List with single action and controlled selection"
         selectionMode="multiselect"
         selectedItems={selectedItems}
         onSelectionChange={(_, data) => setSelectedItems(data.selectedItems)}
-        aria-label="People example"
       >
         {items.map(({ name, avatar }) => (
           <ListItem key={name} value={name} aria-label={name} checkmark={{ 'aria-label': name }}>

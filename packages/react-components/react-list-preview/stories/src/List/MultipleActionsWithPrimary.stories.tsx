@@ -153,7 +153,12 @@ export const MultipleActionsWithPrimary = () => {
   const classes = useStyles();
 
   return (
-    <List navigationMode="composite" className={classes.list} as="div">
+    <List
+      aria-label="List with multiple actions and primary selection"
+      navigationMode="composite"
+      className={classes.list}
+      as="div"
+    >
       <CustomListItem title="Example List Item" value="card-1" />
       <CustomListItem title="Example List Item" value="card-2" />
       <CustomListItem title="Example List Item" value="card-3" />

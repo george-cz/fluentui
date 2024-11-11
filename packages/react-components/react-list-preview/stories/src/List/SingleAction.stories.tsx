@@ -14,7 +14,7 @@ const names = [
 
 export const SingleAction = () => {
   return (
-    <List navigationMode="items">
+    <List aria-label="List with a single action" navigationMode="items">
       {names.map(name => (
         <ListItem key={name} aria-label={`${name}, available`} onAction={() => alert(`Triggered custom action!`)}>
           <Persona

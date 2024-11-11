@@ -202,8 +202,12 @@ const countries = [
   'Zimbabwe',
 ];
 
+const useListItemStyles = makeResetStyles({
+  margin: '4px',
+});
+
 const CountriesList = React.forwardRef<HTMLUListElement>((props: React.ComponentProps<typeof List>, ref) => (
-  <List navigationMode="items" aria-label="Countries" {...props} ref={ref} />
+  <List navigationMode="items" aria-label="Countries with action" {...props} ref={ref} />
 ));
 
 const useTextStyle = makeResetStyles({
@@ -212,6 +216,7 @@ const useTextStyle = makeResetStyles({
 
 export const VirtualizedListWithActionableItems = () => {
   const textStyle = useTextStyle();
+  const liStyle = useListItemStyles();
   return (
     <FixedSizeList
       height={400}
@@ -223,6 +228,7 @@ export const VirtualizedListWithActionableItems = () => {
     >
       {({ index, style, data }) => (
         <ListItem
+          className={liStyle}
           style={style}
           aria-setsize={countries.length}
           aria-posinset={index + 1}

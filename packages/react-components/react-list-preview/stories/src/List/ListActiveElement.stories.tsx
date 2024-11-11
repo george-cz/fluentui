@@ -62,6 +62,7 @@ export const ListActiveElement = () => {
   return (
     <div>
       <List
+        aria-label="List with active element"
         as="div"
         selectionMode="single"
         navigationMode="composite"

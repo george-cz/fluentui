@@ -35,7 +35,7 @@ export const SingleActionSelectionDifferentPrimary = () => {
 
   return (
     <List
-      aria-label="People example"
+      aria-label="List with a single action and selection"
       selectionMode="multiselect"
       selectedItems={selectedItems}
       onSelectionChange={(_, data) => setSelectedItems(data.selectedItems)}
